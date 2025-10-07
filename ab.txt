@@ -1,0 +1,72 @@
+@119026579722306 
+{
+  "user": {
+    "addNewUser": {
+      "url": "/api/user/app/add-new-user",
+      "method": "POST",
+      "auth": "jwt",
+      "bodyType": "form-data",
+      "body": {
+        "name": "Jane Doe",
+        "phoneNumber": "9876543210",
+        "countryCode": "+91 optional",
+        "email": "janedoe@example.com optional",
+        "gender": "female optional",
+        "profileImage": "(file) optional"
+      }
+    },
+    "addNewStaff": {
+      "url": "/api/user/app/add-new-Staff",
+      "method": "POST",
+      "auth": "jwt",
+      "bodyType": "form-data",
+      "body": {
+        "name": "John Doe",
+        "phoneNumber": "9876543210",
+        "countryCode": "+91 optional",
+        "email": "johndoe@example.com optional",
+        "gender": "male optional",
+        "labId": "64f1e3b9c1a1234567890abc",
+        "profileImage": "(file) optional"
+      }
+    },
+    "listUsers": {
+      "url": "/api/user/app/list-users",
+      "method": "GET",
+      "auth": "jwt",
+      "queryParams": {
+        "role": "(optional) user | Staff"
+      }
+    },
+    "updateUserStatus": {
+      "url": "/api/user/app/update-user-status/:id",
+      "method": "PUT",
+      "auth": "jwt",
+      "bodyType": "json",
+      "body": {
+        "status": true
+      }
+    },
+    "updateUser": {
+      "url": "/api/user/app/update-user/:id",
+      "method": "PUT",
+      "auth": "jwt",
+      "bodyType": "form-data",
+      "body": {
+        "name": "Updated Name",
+        "phoneNumber": "9876543211",
+        "countryCode": "+91 optional",
+        "email": "updatedemail@example.com optional",
+        "gender": "female optional",
+        "profileImage": "(file) optional",
+
+      }
+    },
+    "deleteUser": {
+      "url": "/api/user/app/delete-user/:id",
+      "method": "DELETE",
+      "auth": "jwt"
+    }
+  }
+}
+ use this updated one

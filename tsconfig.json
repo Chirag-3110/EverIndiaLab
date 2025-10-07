@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "es2016", // Minimum for Array.includes
+    "lib": ["es2016", "dom", "es2017"], // Add modern JS + browser APIs
+    "jsx": "react-jsx", // React 17+ JSX transform
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "baseUrl": "."
+  },
+  "include": ["src", "global.d.ts"],
+  "exclude": ["node_modules"]
+}

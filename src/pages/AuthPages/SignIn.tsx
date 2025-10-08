@@ -6,7 +6,7 @@ export default function SignIn() {
   return (
     <>
       <PageMeta
-        title="EverIndia Path Lab Admin"
+        title="EverIndia Path Lab Admi"
         description="This is EverIndia Path Lab Admin panel "
       />
       <AuthLayout>

@@ -26,8 +26,8 @@ export const StaffApi = createApi({
     }),
 
     // Get All Staffs
-    getStaffs: builder.query<any, void>({
-      query: () => `lab/list-lab-users`,
+    getStaffs: builder.query<any, String>({
+      query: (searchText) => `lab/list-lab-users?search=${searchText}`,
       providesTags: ["Staff"],
     }),
 

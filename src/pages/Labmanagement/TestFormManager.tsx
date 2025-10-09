@@ -50,6 +50,7 @@ const TestFormManager = () => {
   const [deleteTestForm] = useDeletetestFormMutation();
 
   const [testForms, setTestForms] = useState([]);
+  console.log(testForms);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTestForm, setEditingTestForm] = useState(null);
   const [form] = Form.useForm();
@@ -137,13 +138,15 @@ const TestFormManager = () => {
       dataIndex: "description",
       key: "description",
       minWidth: 250,
+      render: (value) => <span>{value || "--"}</span>,
     },
     {
       title: "Sample Types",
       dataIndex: "sampleType",
       key: "sampleType",
-      render: (arr) => arr.join(", "),
       minWidth: 180,
+      render: (arr) =>
+        Array.isArray(arr) && arr.length > 0 ? arr.join(", ") : "--",
     },
     {
       title: "Report Time",
@@ -168,13 +171,13 @@ const TestFormManager = () => {
       title: "Price",
       key: "price",
       dataIndex: "price",
-      render: (val) => `₹${val}`,
+      render: (val) => (val === null || val === undefined ? "--" : `₹${val}`),
     },
     {
       title: "Discount Price",
       key: "discountPrice",
       dataIndex: "discountPrice",
-      render: (val) => `₹${val}`,
+      render: (val) => (val === null || val === undefined ? "--" : `₹${val}`),
       minWidth: 150,
     },
     {

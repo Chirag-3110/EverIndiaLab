@@ -26,15 +26,14 @@ import {
 } from "../../redux/api/staffApi";
 import { formatDate } from "../../utils/utils";
 import { useGetlabsQuery } from "../../redux/api/labsApi";
-import { useGetlabDetailsQuery } from "../../redux/api/categoryApi";
 
 const { Option } = Select;
 
 const Staff = () => {
-  const { data: labDetail, isLoading: labLoading } = useGetlabDetailsQuery({});
-  console.log(labDetail?.response?.lab);
+  const [searchText, setSearchText] = useState("");
+
   const { data: labList } = useGetlabsQuery({});
-  const { data, isLoading } = useGetStaffsQuery();
+  const { data, isLoading } = useGetStaffsQuery(searchText);
   const { isExpanded, isHovered } = useSidebar();
 
   const [addUser] = useAddStaffMutation();
@@ -50,6 +49,10 @@ const Staff = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   console.log(imageFile, imagePreview);
+
+  const handleSearchChange = (e: any) => {
+    setSearchText(e.target.value);
+  };
 
   // Open modal for adding new user
   const openAddModal = () => {
@@ -103,8 +106,8 @@ const Staff = () => {
       formData.append("name", values.name);
       formData.append("email", values.email || "");
       formData.append("phoneNumber", values.phoneNumber);
-      // formData.append("status", values.status === "Active" ? "true" : "false");
-      formData.append("labId", labDetail?.response?.lab?._id);
+      formData.append("status", values.status === "Active" ? "true" : "false");
+      formData.append("labId", values.labId);
       if (imageFile) {
         formData.append("profileImage", imageFile);
       }
@@ -182,6 +185,9 @@ const Staff = () => {
       dataIndex: "createdAt",
       key: "createdAt",
       render: (value: any) => <span>{formatDate(value)}</span>,
+      sorter: (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      minWidth: 160,
     },
     {
       title: "Action",
@@ -255,10 +261,19 @@ const Staff = () => {
     >
       <PageBreadcrumb pageTitle="Phlebotomist" />
 
-      <div className="flex justify-end mb-4">
-        <Button type="primary" onClick={openAddModal}>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
+        <Input.Search
+          placeholder="Search Phlebotomist"
+          value={searchText}
+          onChange={handleSearchChange}
+          // onSearch={handleSearch}
+          allowClear
+          enterButton
+          className="w-full sm:w-1/2 md:w-1/3"
+        />
+        {/* <Button type="primary" onClick={openAddModal}>
           + Add Phlebotomist
-        </Button>
+        </Button> */}
       </div>
 
       <Table
@@ -284,7 +299,7 @@ const Staff = () => {
         zIndex={10000}
       >
         <Form form={form} layout="vertical">
-          {/* <Form.Item
+          <Form.Item
             name="labId"
             label="Select Lab"
             rules={[{ required: true, message: "Please select a lab" }]}
@@ -296,7 +311,7 @@ const Staff = () => {
                 </Option>
               ))}
             </Select>
-          </Form.Item> */}
+          </Form.Item>
 
           <Form.Item
             name="name"
@@ -336,7 +351,7 @@ const Staff = () => {
             <Input placeholder="Enter email" />
           </Form.Item>
 
-          {/* <Form.Item
+          <Form.Item
             name="status"
             label="Status"
             initialValue="Deactive"
@@ -346,7 +361,7 @@ const Staff = () => {
               <Option value="Active">Active</Option>
               <Option value="Deactive">Deactive</Option>
             </Select>
-          </Form.Item> */}
+          </Form.Item>
 
           <Form.Item label="User Image (Optional)">
             <Upload

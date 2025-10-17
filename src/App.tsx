@@ -25,6 +25,9 @@ import Staff from "./pages/Staff/Staff";
 import Mail from "./pages/Email/Mail";
 import SiteSetting from "./pages/SiteSetting/SiteSetting";
 import FaqAdminPage from "./pages/FaqAdmin/FaqAdminPage";
+import PackageList from "./pages/PackageManagement/PackageList";
+import PackageForm from "./pages/PackageManagement/PackageForm";
+import PackageDetails from "./pages/PackageManagement/PackageDetails";
 
 export default function App() {
   return (
@@ -56,6 +59,13 @@ export default function App() {
           <Route path="/labs/:id" element={<LabDetail />} />
           <Route index path="/lab-management" element={<LabManagement />} />
           <Route index path="/test-form" element={<TestFormManager />} />
+
+          <Route index path="/packages" element={<PackageList />} />
+          <Route index path="/packages/new" element={<PackageForm />} />
+
+          <Route path="/packages/edit/:id" element={<PackageForm />} />
+          <Route path="/packages/details/:id" element={<PackageDetails />} />
+
           <Route index path="/profile-management" element={<UpdateProfile />} />
           <Route index path="/cms" element={<CMSPage />} />
           <Route index path="/contact" element={<ContactPage />} />

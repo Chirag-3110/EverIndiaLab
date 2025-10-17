@@ -16,6 +16,7 @@ import {
   LogOut,
   LogOutIcon,
   NotebookPen,
+  Package,
   Settings,
   TableProperties,
   Ticket,
@@ -59,6 +60,11 @@ const navItems: NavItem[] = [
     icon: <UsersRound />,
     name: "Phlebotomist",
     path: "/Staff",
+  },
+  {
+    icon: <Package />,
+    name: "Package Management",
+    subItems: [{ name: "Packages", path: "/packages", pro: false }],
   },
   // {
   //   icon: <Hospital />,

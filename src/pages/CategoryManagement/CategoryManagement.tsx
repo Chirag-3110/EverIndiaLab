@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   Button,
@@ -24,7 +24,26 @@ const CategoryManagement = () => {
   // Get list of categories
   const { data, isLoading } = useGetCategoryListQuery({});
   const { data: labDetail, isLoading: labLoading } = useGetlabDetailsQuery({});
-  console.log(labDetail?.response?.lab?.category);
+  // console.log(labDetail?.response?.lab?.category);
+
+  const [category, setCategory] = useState([]);
+  console.log(category);
+
+  useEffect(() => {
+    if (data?.response && labDetail?.response?.lab?.category) {
+      const labCategoryIds = labDetail.response.lab.category.map(
+        (cat) => cat._id
+      );
+
+      const filteredCategories = data.response.filter(
+        (cat) => !labCategoryIds.includes(cat._id)
+      );
+
+      setCategory(filteredCategories);
+    } else if (data?.response) {
+      setCategory(data.response);
+    }
+  }, [data, labDetail]);
 
   // Mutations
   const [createCategory] = useCreateCategoryMutation();
@@ -53,21 +72,25 @@ const CategoryManagement = () => {
     form.resetFields();
   };
 
-  // Submit form with selected categories and image
   const handleAddOrUpdate = async () => {
     try {
       const values = await form.validateFields();
+
+      const labCategoryIds =
+        labDetail?.response?.lab?.category?.map((cat) => cat._id) || [];
+
+      const combinedCategoryIds = [
+        ...new Set([...(values.selectedCategories || []), ...labCategoryIds]),
+      ];
+
       const payload = {
-        category: values.selectedCategories, // array of IDs
-        // include other fields if needed
+        category: combinedCategoryIds,
       };
 
-      // If you need to send an image file together, use FormData, here is example:
       if (values.categoryImage?.file) {
         const formData = new FormData();
         formData.append("category", JSON.stringify(values.selectedCategories));
         formData.append("categoryImage", values.categoryImage.file);
-        // Append other fields to formData as needed
 
         if (editingCategory) {
           formData.append("id", editingCategory._id);
@@ -78,9 +101,7 @@ const CategoryManagement = () => {
           toast.success("Category Added Successfully!");
         }
       } else {
-        // No image, send JSON payload
         if (editingCategory) {
-          // Depending on your API, PUT may require id in URL or body
           const updatePayload = { id: editingCategory._id, ...payload };
           await updateCategory(updatePayload).unwrap();
           toast.success("Category Updated Successfully!");
@@ -105,21 +126,16 @@ const CategoryManagement = () => {
       return;
     }
 
-    // Extract IDs safely (works whether they're strings or objects)
     const remainingIdsArray = categories
       .map((cat: any) => (typeof cat === "object" ? cat.id || cat._id : cat))
       .filter((id: string) => id && id !== idToExclude);
 
-    // ✅ Prepare final object in API format
     const payload = {
       category: remainingIdsArray,
     };
     await updateCategory(payload).unwrap();
     console.log("Payload for API:", payload);
     toast.success("Category Deleted Successfully!");
-
-    // Optionally send it to API
-    // await updateLab({ id: labDetail.response.lab.id, data: payload });
   };
 
   // Table columns
@@ -150,12 +166,12 @@ const CategoryManagement = () => {
       key: "action",
       render: (_: any, record: any) => (
         <div style={{ display: "flex", gap: 8 }}>
-          <Button
+          {/* <Button
             style={{ backgroundColor: "#07868D", color: "white" }}
             onClick={() => handleEdit(record)}
           >
             Edit
-          </Button>
+          </Button> */}
           <Popconfirm
             title="Are you sure?"
             onConfirm={() => handleDelete(record._id || record.id)}
@@ -163,7 +179,7 @@ const CategoryManagement = () => {
             cancelText="No"
           >
             <Button style={{ backgroundColor: "#07868D", color: "white" }}>
-              Delete
+              Remove
             </Button>
           </Popconfirm>
         </div>
@@ -228,7 +244,7 @@ const CategoryManagement = () => {
             <Select
               mode="multiple"
               placeholder="Select categories"
-              options={(data?.response || []).map((cat: any) => ({
+              options={(category || []).map((cat: any) => ({
                 label: cat.name,
                 value: cat._id,
               }))}

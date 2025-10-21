@@ -222,10 +222,10 @@ const TestFormManager = () => {
 
   return (
     <div
-      style={{
-        // marginLeft: isExpanded || isHovered ? 0 : 0,
-        // width: isExpanded || isHovered ? "1180px" : "",
-      }}
+      // style={{
+      //   marginLeft: isExpanded || isHovered ? 0 : 0,
+      //   width: isExpanded || isHovered ? "1180px" : "1200px",
+      // }}
     >
       <div>
         <PageBreadcrumb pageTitle="Test Forms" />
@@ -243,7 +243,7 @@ const TestFormManager = () => {
             showSizeChanger: true,
             defaultPageSize: 15,
           }}
-          // scroll={{ x: 1200 }}
+          scroll={{ x: 1200 }}
           loading={isLoading}
         />
 
@@ -408,7 +408,7 @@ const TestFormManager = () => {
             <Form.List name="specifications">
               {(fields, { add, remove }) => (
                 <>
-                  <label>Include Parameters</label>
+                  <label>Specifications</label>
                   {fields.map(({ key, name, fieldKey, ...restField }) => (
                     <Space
                       key={key}
@@ -441,7 +441,7 @@ const TestFormManager = () => {
                       block
                       icon={<PlusOutlined />}
                     >
-                      Add Parameters
+                      Add Specification
                     </Button>
                   </Form.Item>
                 </>

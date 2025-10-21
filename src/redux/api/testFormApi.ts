@@ -7,7 +7,7 @@ export const testFormApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl,
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("l_t_K");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
@@ -19,14 +19,14 @@ export const testFormApi = createApi({
     // ✅ Add New testForm Page
     addtestForm: builder.mutation({
       query: (body) => ({
-        url: "test-forms/add-new-testform",
-        method: "POST",
+        url: "test-forms/assign-lab",
+        method: "PUT",
         body,
       }),
       invalidatesTags: ["testForm"],
     }),
 
-    // ✅ Get testForm Page by slug
+    // ✅ Get Asigned testForm  slug
     gettestForm: builder.query({
       query: () => ({
         url: `test-forms/list-all-testforms`,
@@ -34,6 +34,15 @@ export const testFormApi = createApi({
       }),
       providesTags: ["testForm"],
     }),
+    // ✅ Get testForm Page by slug
+    getAdminTestForm: builder.query({
+      query: ({ searchText = "", page = 1, pageSize = 10 }) => ({
+        url: `test-forms/list-lab-testforms?search=${searchText}&=${page}&limit=${pageSize}`,
+        method: "GET",
+      }),
+      providesTags: ["testForm"],
+    }),
+
     // ✅ Get testForm details
     gettestFormDetails: builder.query({
       query: (id) => ({
@@ -67,6 +76,7 @@ export const testFormApi = createApi({
 export const {
   useAddtestFormMutation,
   useGettestFormQuery,
+  useGetAdminTestFormQuery,
   useGettestFormDetailsQuery,
   useUpdatetestFormMutation,
   useDeletetestFormMutation,

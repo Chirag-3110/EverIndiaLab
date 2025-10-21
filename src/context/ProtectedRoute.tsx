@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
 
 export default function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token"); // check token in localStorage
+  const token = localStorage.getItem("l_t_K"); // check token in localStorage
 
   if (!token) {
     // No token, redirect to signin

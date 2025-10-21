@@ -110,7 +110,7 @@ export default function OTPLoginForm() {
 
       // login({ lab, token });
       localStorage.setItem("lab", JSON.stringify(lab));
-      localStorage.setItem("token", token);
+      localStorage.setItem("l_t_K", token);
       navigate("/");
       toast.success("Logged In Successfully!");
     } catch (err) {

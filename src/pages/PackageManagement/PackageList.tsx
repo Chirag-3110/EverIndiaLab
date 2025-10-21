@@ -145,8 +145,22 @@ const PackageList = () => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => navigate("/packages/new")}
+          style={{ backgroundColor: "#4CAF50", borderColor: "#4CAF50" }} // green
         >
           Add Package
+        </Button>
+
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => navigate("/packages/assign")}
+          style={{
+            backgroundColor: "#FF9800",
+            borderColor: "#FF9800",
+            marginLeft: 10,
+          }} // orange
+        >
+          Assign Packages
         </Button>
       </div>
 

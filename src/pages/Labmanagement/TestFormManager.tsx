@@ -32,6 +32,7 @@ import {
 } from "../../redux/api/testFormApi";
 import { useSidebar } from "../../context/SidebarContext";
 import { formatDate } from "../../utils/utils";
+import { useNavigate } from "react-router";
 
 const { Option } = Select;
 
@@ -43,6 +44,7 @@ const ageGroups = ["All ages", "Child", "Adult", "Senior"];
 
 const TestFormManager = () => {
   const { isExpanded, isHovered } = useSidebar();
+  const navigate = useNavigate();
 
   const { data, error, isLoading, refetch } = useGettestFormQuery({});
   const [addTestForm] = useAddtestFormMutation();
@@ -228,8 +230,8 @@ const TestFormManager = () => {
       <div>
         <PageBreadcrumb pageTitle="Test Forms" />
         <div style={{ textAlign: "right", marginBottom: 16 }}>
-          <Button type="primary" onClick={openAddModal}>
-            + Add Test Form
+          <Button type="primary" onClick={() => navigate("/test-form/assign")}>
+            + Assign Test Form
           </Button>
         </div>
         <Table

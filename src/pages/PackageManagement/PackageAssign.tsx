@@ -14,6 +14,8 @@ import {
 } from "antd";
 import {
   useAddpackageMutation,
+  useAssignpackageMutation,
+  useGetActiveAdminPackageQuery,
   useUpdatepackageMutation,
 } from "../../redux/api/packageApi";
 import { useGettestFormQuery } from "../../redux/api/testFormApi";
@@ -24,8 +26,9 @@ import { useAuth } from "../../context/AuthContext";
 
 const { Option } = Select;
 
-const PackageForm = () => {
+const PackageAssign = () => {
   const { user } = useAuth();
+  console.log("ajksdk",user)
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
@@ -34,12 +37,14 @@ const PackageForm = () => {
   console.log(editData);
 
   const { data: category } = useGetCategoryListQuery("");
+  const { data: AdminPackages } = useGetActiveAdminPackageQuery("");
+  console.log(AdminPackages);
 
   const [form] = Form.useForm();
   const [selectedTests, setSelectedTests] = useState([]);
   const [includedTestsDetails, setIncludedTestsDetails] = useState([]);
 
-  const [addPackage] = useAddpackageMutation();
+  const [assignpackage] = useAssignpackageMutation();
   const [updatePackage] = useUpdatepackageMutation();
 
   const [searchText, setSearchText] = useState("");
@@ -51,9 +56,9 @@ const PackageForm = () => {
     pageSize: 10,
   });
 
-  const testList = testData?.response?.testForms ?? [];
-  console.log(testList);
-  const total = testData?.response?.pagination?.totalCount ?? 0;
+  const packageList = AdminPackages?.response?.packages ?? [];
+  console.log(packageList);
+  const total = packageList.length ?? 0;
 
   // 🧩 When editing — prefill form and only keep test IDs
   useEffect(() => {
@@ -71,10 +76,11 @@ const PackageForm = () => {
         ...editData,
         includedTests: includedTestIds,
         category: editData?.category?._id || undefined,
-        
       });
     }
   }, [editData]);
+
+  console.log("lab ID : ", user?._id);
 
   // 💾 Save handler
   const handleSave = async () => {
@@ -83,22 +89,20 @@ const PackageForm = () => {
 
       // Always send only IDs
       const payload = {
-        ...values,
-        includedTests: selectedTests.map((t) =>
+        labId: user?._id,
+        // packageId: "68f27ae452211bb4fcdc872f",
+        packageId: selectedTests.map((t) =>
           typeof t === "object" ? t._id : t
         ),
-        labId: user?._id,
       };
 
-      if (editData) {
-        await updatePackage({ id: editData._id, body: payload }).unwrap();
-        toast.success("Package updated successfully");
-      } else {
-        await addPackage(payload).unwrap();
-        toast.success("Package added successfully");
-      }
+      console.log(payload);
 
-      navigate("/packages");
+      await assignpackage(payload).unwrap();
+      toast.success("Package added successfully");
+      navigate("/packages")
+
+      //   navigate("/packages");
     } catch (err) {
       console.error("Save error:", err);
 
@@ -154,14 +158,57 @@ const PackageForm = () => {
         />
       ),
     },
-
-    { title: "Test Title", dataIndex: "title", key: "title" },
-    { title: "Category", dataIndex: "category", key: "category" },
+    { title: "Package Title", dataIndex: "title", key: "title" },
+    {
+      title: "Category",
+      dataIndex: ["category", "name"], // access category.name safely
+      key: "category",
+    },
+    { title: "Price", dataIndex: "price", key: "price" },
+    {
+      title: "Discount Price",
+      dataIndex: "discountPrice",
+      key: "discountPrice",
+    },
   ];
 
+  // ✅ Columns for expanded "includedTests" view
+  const includedTestsColumns = [
+    {
+      title: "Test Title",
+      dataIndex: "title",
+      key: "title",
+    },
+    {
+      title: "Category",
+      dataIndex: "category",
+      key: "category",
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      render: (text) => text || "-",
+    },
+    {
+      title: "Recommended Gender",
+      dataIndex: "recommendedGender",
+      key: "recommendedGender",
+    },
+    {
+      title: "Report Time",
+      dataIndex: "reportTime",
+      key: "reportTime",
+    },
+    {
+      title: "Price",
+      dataIndex: "price",
+      key: "price",
+    },
+  ];
   return (
     <div>
-      <PageBreadcrumb pageTitle={editData ? "Edit Package" : "Add Package"} />
+      <PageBreadcrumb pageTitle={"Assign Package"} />
 
       {/* 🔙 Back button */}
       <div className="mb-4">
@@ -171,84 +218,6 @@ const PackageForm = () => {
       </div>
 
       <Form form={form} layout="vertical">
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item
-              name="title"
-              label="Package Title"
-              rules={[{ required: true }]}
-            >
-              <Input placeholder="Enter package name" />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="category"
-              label="Category"
-              rules={[{ required: true, message: "Please select category" }]}
-            >
-              <Select placeholder="Select category" allowClear>
-                {category?.response?.map((cat) => (
-                  <Option key={cat} value={cat?._id}>
-                    {cat?.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            {" "}
-            <Form.Item
-              name="collectionType"
-              label="Collection Type"
-              rules={[{ required: true }]}
-            >
-              <Select placeholder="Select collection type">
-                <Option value="Home Collection">Home Collection</Option>
-                <Option value="Lab Visit">Lab Visit</Option>
-                <Option value="Both">Both</Option>
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item
-              name="reportTime"
-              label="Report Time"
-              rules={[{ message: "Please input report time" }]}
-            >
-              <Input placeholder="e.g. 24 hrs" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Form.Item name="description" label="Description">
-          <Input.TextArea rows={3} />
-        </Form.Item>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="price" label="Price" rules={[{ required: true }]}>
-              <InputNumber prefix="₹" style={{ width: "100%" }} min={0} />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item name="discountPrice" label="Discount Price">
-              <InputNumber prefix="₹" style={{ width: "100%" }} min={0} />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Form.Item
-          name="prescriptionRequired"
-          label="Prescription Required"
-          valuePropName="checked"
-        >
-          <Switch />
-        </Form.Item>
-
         {/* Slected Tests */}
         <h3 className="font-semibold mb-2">Selected Tests</h3>
 
@@ -286,21 +255,30 @@ const PackageForm = () => {
 
         <Table
           columns={columns}
-          dataSource={testList}
-          loading={isFetching}
-          pagination={{
-            current: page,
-            total,
-            pageSize: 10,
-            onChange: (p) => setPage(p),
-          }}
+          dataSource={[...packageList].reverse()} // 👈 show recently added packages first
           rowKey="_id"
+          expandable={{
+            expandedRowRender: (record) => (
+              <Table
+                columns={includedTestsColumns}
+                dataSource={record.includedTests}
+                rowKey="_id"
+                pagination={false}
+                size="small"
+              />
+            ),
+            rowExpandable: (record) =>
+              Array.isArray(record.includedTests) &&
+              record.includedTests.length > 0,
+          }}
+          pagination={{ pageSize: 5 }}
+          bordered
         />
 
         <div className="mt-6 flex justify-end gap-3">
           <Button onClick={() => navigate("/packages")}>Cancel</Button>
           <Button type="primary" onClick={handleSave}>
-            {editData ? "Update Package" : "Add Package"}
+            {"Assign Package"}
           </Button>
         </div>
       </Form>
@@ -308,4 +286,4 @@ const PackageForm = () => {
   );
 };
 
-export default PackageForm;
+export default PackageAssign;

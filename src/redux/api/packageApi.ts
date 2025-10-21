@@ -7,7 +7,7 @@ export const packageApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl,
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("l_t_K");
       if (token) {
         headers.set("Authorization", `Bearer ${token}`);
       }
@@ -16,7 +16,7 @@ export const packageApi = createApi({
   }),
   tagTypes: ["package"],
   endpoints: (builder) => ({
-    // ✅ Add New package
+    // ✅ Assign Admin package
     addpackage: builder.mutation({
       query: (body) => ({
         url: "packages/add-new-package",
@@ -24,6 +24,24 @@ export const packageApi = createApi({
         body,
       }),
       invalidatesTags: ["package"],
+    }),
+    // ✅ Assign Admin package
+    assignpackage: builder.mutation({
+      query: (body) => ({
+        url: "packages/assign-lab",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["package"],
+    }),
+
+    // ✅ Get Admin package
+    getActiveAdminPackage: builder.query({
+      query: ({ searchText = "", page = 1, pageSize = 10 }) => ({
+        url: `packages/list-lab-packages?search=${searchText}&=${page}&limit=${pageSize}`,
+        method: "GET",
+      }),
+      providesTags: ["package"],
     }),
 
     // ✅ Get package
@@ -83,6 +101,7 @@ export const packageApi = createApi({
 });
 
 export const {
+  useAssignpackageMutation,
   useAddpackageMutation,
   useGetpackageQuery,
   useGetActivePackageQuery,
@@ -90,4 +109,5 @@ export const {
   useUpdatepackageMutation,
   useDeletepackageMutation,
   useUpdatePackageStatusMutation,
+  useGetActiveAdminPackageQuery,
 } = packageApi;

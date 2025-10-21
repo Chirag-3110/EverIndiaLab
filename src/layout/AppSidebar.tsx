@@ -74,14 +74,13 @@ const navItems: NavItem[] = [
   //     { name: "Lab Management", path: "/lab-management", pro: false },
   //   ],
   // },
-  // {
-  //   icon: <NotebookPen />,
-  //   name: "Test Management",
-  //   subItems: [
-  //     { name: "Test", path: "/test-form", pro: false },
-  //     { name: "Lab Management", path: "/lab-management", pro: false },
-  //   ],
-  // },
+  {
+    icon: <NotebookPen />,
+    name: "Test Management",
+    subItems: [
+      { name: "Test", path: "/test-form", pro: false },
+    ],
+  },
   // {
   //   icon: <TableProperties />,
   //   name: "Rental Properties",

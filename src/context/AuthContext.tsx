@@ -13,7 +13,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   function login(data: { user: any; token: string }) {
     if (!data?.user || !data?.token) return;
     localStorage.setItem("user", JSON.stringify(data.user));
-    localStorage.setItem("token", data.token);
+    localStorage.setItem("l_t_K", data.token);
     setUser(data.user);
   }
 
@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("lab");
-    localStorage.removeItem("token");
+    localStorage.removeItem("l_t_K");
   }
 
   // Add to AuthProvider
@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ✅ Load from localStorage when app starts
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("l_t_K");
     const storedUser = localStorage.getItem("lab");
 
     if (token && storedUser) {
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const isAuthenticated = !!localStorage.getItem("token");
+  const isAuthenticated = !!localStorage.getItem("l_t_K");
 
   return (
     <AuthContext.Provider

@@ -408,7 +408,7 @@ const TestFormManager = () => {
             <Form.List name="specifications">
               {(fields, { add, remove }) => (
                 <>
-                  <label>Specifications</label>
+                  <label>Include Parameters</label>
                   {fields.map(({ key, name, fieldKey, ...restField }) => (
                     <Space
                       key={key}
@@ -441,7 +441,7 @@ const TestFormManager = () => {
                       block
                       icon={<PlusOutlined />}
                     >
-                      Add Specification
+                      Add Parameters
                     </Button>
                   </Form.Item>
                 </>

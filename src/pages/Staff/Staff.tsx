@@ -255,8 +255,8 @@ const Staff = () => {
   return (
     <div
       style={{
-        marginLeft: isExpanded || isHovered ? 0 : 0,
-        width: isExpanded || isHovered ? "1180px" : "",
+        // marginLeft: isExpanded || isHovered ? 0 : 0,
+        // width: isExpanded || isHovered ? "1180px" : "",
       }}
     >
       <PageBreadcrumb pageTitle="Phlebotomist" />
@@ -285,7 +285,7 @@ const Staff = () => {
           showSizeChanger: true,
           defaultPageSize: 15,
         }}
-        scroll={{ x: 1200 }}
+        // scroll={{ x: 1200 }} 
         loading={isLoading}
       />
 

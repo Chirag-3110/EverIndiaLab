@@ -243,7 +243,7 @@ const TestFormManager = () => {
             showSizeChanger: true,
             defaultPageSize: 15,
           }}
-          scroll={{ x: 1200 }}
+          // scroll={{ x: 1200 }}
           loading={isLoading}
         />
 

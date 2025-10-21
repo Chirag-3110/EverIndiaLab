@@ -223,8 +223,8 @@ const TestFormManager = () => {
   return (
     <div
       style={{
-        marginLeft: isExpanded || isHovered ? 0 : 0,
-        width: isExpanded || isHovered ? "1180px" : "",
+        // marginLeft: isExpanded || isHovered ? 0 : 0,
+        // width: isExpanded || isHovered ? "1180px" : "",
       }}
     >
       <div>

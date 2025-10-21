@@ -37,7 +37,7 @@ export const testFormApi = createApi({
     // ✅ Get testForm Page by slug
     getAdminTestForm: builder.query({
       query: ({ searchText = "", page = 1, pageSize = 10 }) => ({
-        url: `test-forms/list-lab-testforms?search=${searchText}&=${page}&limit=${pageSize}`,
+        url: `test-forms/list-lab-testforms?search=${searchText}&page=${page}&limit=${pageSize}`,
         method: "GET",
       }),
       providesTags: ["testForm"],

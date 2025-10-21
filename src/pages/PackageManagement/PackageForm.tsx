@@ -16,7 +16,10 @@ import {
   useAddpackageMutation,
   useUpdatepackageMutation,
 } from "../../redux/api/packageApi";
-import { useGettestFormQuery } from "../../redux/api/testFormApi";
+import {
+  useGetAdminTestFormQuery,
+  useGettestFormQuery,
+} from "../../redux/api/testFormApi";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { toast } from "react-toastify";
 import { useGetCategoryListQuery } from "../../redux/api/categoryApi";
@@ -51,9 +54,15 @@ const PackageForm = () => {
     pageSize: 10,
   });
 
-  const testList = testData?.response?.testForms ?? [];
+  const { data: adminPackages } = useGetAdminTestFormQuery({
+    searchText,
+    page,
+    pageSize: 10,
+  });
+  console.log(adminPackages);
+  const testList = adminPackages?.response?.testForms ?? [];
   console.log(testList);
-  const total = testData?.response?.pagination?.totalCount ?? 0;
+  const total = adminPackages?.response?.pagination?.totalCount ?? 0;
 
   // 🧩 When editing — prefill form and only keep test IDs
   useEffect(() => {
@@ -71,7 +80,6 @@ const PackageForm = () => {
         ...editData,
         includedTests: includedTestIds,
         category: editData?.category?._id || undefined,
-        
       });
     }
   }, [editData]);

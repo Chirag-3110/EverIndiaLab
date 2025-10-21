@@ -38,7 +38,7 @@ export const packageApi = createApi({
     // ✅ Get Admin package
     getActiveAdminPackage: builder.query({
       query: ({ searchText = "", page = 1, pageSize = 10 }) => ({
-        url: `packages/list-lab-packages?search=${searchText}&=${page}&limit=${pageSize}`,
+        url: `packages/list-lab-packages?search=${searchText}&page=${page}&limit=${pageSize}`,
         method: "GET",
       }),
       providesTags: ["package"],
@@ -47,7 +47,7 @@ export const packageApi = createApi({
     // ✅ Get package
     getpackage: builder.query({
       query: ({ searchText = "", page = 1, pageSize = 10 }) => ({
-        url: `packages/list-all-packages?search=${searchText}&=${page}&limit=${pageSize}`,
+        url: `packages/list-all-packages?search=${searchText}&page=${page}&limit=${pageSize}`,
         method: "GET",
       }),
       providesTags: ["package"],
@@ -55,7 +55,7 @@ export const packageApi = createApi({
     // ✅ Get Active package
     getActivePackage: builder.query({
       query: ({ searchText = "", page = 1, pageSize = 10 }) => ({
-        url: `packages/list-active-packages?search=${searchText}&=${page}&limit=${pageSize}`,
+        url: `packages/list-active-packages?search=${searchText}&page=${page}&limit=${pageSize}`,
         method: "GET",
       }),
       providesTags: ["package"],

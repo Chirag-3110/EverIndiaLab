@@ -167,7 +167,7 @@ const PackageDetails = () => {
         </Descriptions>
       </Card>
 
-      <Card hoverable style={{ borderRadius: 12 }}>
+      {/* <Card hoverable style={{ borderRadius: 12 }}>
         <Tabs activeKey={activeTab} onChange={setActiveTab} size="large">
           <TabPane tab="Assign Test" key="assignTest">
             <div
@@ -196,7 +196,7 @@ const PackageDetails = () => {
             </div>
           </TabPane>
         </Tabs>
-      </Card>
+      </Card> */}
     </div>
   );
 };

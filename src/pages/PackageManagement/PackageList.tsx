@@ -88,22 +88,22 @@ const PackageList = () => {
       key: "price",
       render: (v) => `₹${v}`,
     },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (v) => (
-        <Tag color={v ? "green" : "red"} style={{ cursor: "pointer" }}>
-          {v ? "Active" : "Inactive"}
-        </Tag>
-      ),
-    },
+    // {
+    //   title: "Status",
+    //   dataIndex: "status",
+    //   key: "status",
+    //   render: (v) => (
+    //     <Tag color={v ? "green" : "red"} style={{ cursor: "pointer" }}>
+    //       {v ? "Active" : "Inactive"}
+    //     </Tag>
+    //   ),
+    // },
     {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
         <Space>
-          <Button
+          {/* <Button
             icon={
               record.status === true ? (
                 <CheckCircleOutlined style={{ color: "green" }} />
@@ -112,13 +112,13 @@ const PackageList = () => {
               )
             }
             onClick={() => handleStatusChange(record)}
-          />
-          <Button
+          /> */}
+          {/* <Button
             icon={<EditOutlined />}
             onClick={() =>
               navigate(`/packages/edit/${record._id}`, { state: record })
             }
-          />
+          /> */}
           <Popconfirm
             title="Are you sure to delete?"
             onConfirm={() => handleDelete(record._id)}

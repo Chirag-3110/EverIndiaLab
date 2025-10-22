@@ -1,24 +1,38 @@
+import React from "react";
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
 import { Outlet } from "react-router";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
-import React from "react";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
+  // Detect mobile viewport (simple approach)
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth <= 768);
+
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // Dynamically compute sidebar width
   const sidebarWidth = React.useMemo(() => {
-    if (isMobileOpen) return 0; // overlay on mobile
-    if (isExpanded || isHovered) return 290; // expanded sidebar
-    return 90; // collapsed sidebar
-  }, [isExpanded, isHovered, isMobileOpen]);
+    if (isMobile) {
+      // On mobile, sidebar when open overlays and does not push content
+      return isMobileOpen ? 0 : 0; // content full width if sidebar closed
+    }
+    // Desktop logic: expanded or hovered sidebar width, otherwise collapsed width
+    if (isExpanded || isHovered) return 290;
+    return 90;
+  }, [isExpanded, isHovered, isMobileOpen, isMobile]);
 
-  // Inline style ensures dynamic width works perfectly across zoom levels
+  // Content styles, adjusted for mobile full width when sidebar closed
   const contentStyle: React.CSSProperties = {
-    width: `calc(100% - ${sidebarWidth}px)`,
-    marginLeft: `${sidebarWidth}px`,
+    width:
+      isMobile && !isMobileOpen ? "100%" : `calc(100% - ${sidebarWidth}px)`,
+    marginLeft: isMobile && !isMobileOpen ? 0 : `${sidebarWidth}px`,
     transition: "all 0.3s ease-in-out",
     minHeight: "100vh",
   };

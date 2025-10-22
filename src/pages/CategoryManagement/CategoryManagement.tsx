@@ -144,7 +144,12 @@ const CategoryManagement = () => {
       title: "Name",
       dataIndex: "name",
       key: "name",
-      render: (text: string) => <strong>{text}</strong>,
+      render: (text: string) => (
+        <div>
+          <strong>{text}</strong>
+        </div>
+      ),
+      width:400
     },
     {
       title: "Image",

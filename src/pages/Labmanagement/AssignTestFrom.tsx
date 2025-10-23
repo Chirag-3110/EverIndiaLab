@@ -40,6 +40,8 @@ const AssignTestForm = () => {
   const [selectedTests, setSelectedTests] = useState([]);
   const [includedTestsDetails, setIncludedTestsDetails] = useState([]);
 
+  console.log(selectedTests)
+
   const [addtestForm] = useAddtestFormMutation();
   const [updatePackage] = useUpdatepackageMutation();
 
@@ -53,11 +55,28 @@ const AssignTestForm = () => {
     page,
     pageSize: 10,
   });
-  console.log(AdminTestForm);
+  // console.log(AdminTestForm);
 
   const packageList = AdminTestForm?.response?.testForms ?? [];
-  console.log(AdminTestForm);
+  // console.log(AdminTestForm);
   const total = AdminTestForm?.response?.pagination?.totalCount ?? 0;
+
+  const allSelected =
+    packageList.length > 0 &&
+    packageList.every((test) => selectedTests.includes(test._id));
+
+  const handleSelectAllChange = (e) => {
+    if (e.target.checked) {
+      // Select all test IDs and objects
+      const allTestIds = packageList.map((test) => test._id);
+      setSelectedTests(allTestIds);
+      setIncludedTestsDetails(packageList);
+    } else {
+      // Deselect all
+      setSelectedTests([]);
+      setIncludedTestsDetails([]);
+    }
+  };
 
   // 💾 Save handler
   const handleSave = async () => {
@@ -73,8 +92,8 @@ const AssignTestForm = () => {
       console.log(payload);
 
       await addtestForm(payload).unwrap();
-        toast.success("Package added successfully");
-navigate("/test-form")
+      toast.success("Test added successfully");
+      navigate("/test-form");
       //   navigate("/packages");
     } catch (err) {
       console.error("Save error:", err);
@@ -223,6 +242,22 @@ navigate("/test-form")
           allowClear
           className="mb-3"
         />
+
+        {/* Select All Checkbox */}
+        <div style={{ marginBottom: 8 }}>
+          <input
+            type="checkbox"
+            id="selectAll"
+            checked={allSelected}
+            onChange={handleSelectAllChange}
+          />
+          <label
+            htmlFor="selectAll"
+            style={{ marginLeft: 8, userSelect: "none" }}
+          >
+            Select All
+          </label>
+        </div>
 
         <Table
           columns={columns}

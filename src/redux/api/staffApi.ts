@@ -25,12 +25,6 @@ export const StaffApi = createApi({
       invalidatesTags: ["Staff"],
     }),
 
-    // Get All Staffs
-    getStaffs: builder.query<any, String>({
-      query: (searchText) => `lab/list-lab-users?search=${searchText}`,
-      providesTags: ["Staff"],
-    }),
-
     // Delete Staff
     deleteStaff: builder.mutation({
       query: (id) => ({
@@ -60,6 +54,21 @@ export const StaffApi = createApi({
       }),
       invalidatesTags: ["Staff"],
     }),
+
+    // Get All Assigned Staffs
+    getStaffs: builder.query<any, String>({
+      query: (searchText) => `lab/list-lab-users?search=${searchText}`,
+      providesTags: ["Staff"],
+    }),
+    // Unassigned Staff
+    unassignedStaff: builder.mutation({
+      query: (payload) => ({
+        url: "lab/unassigned-staff",
+        method: "PUT",
+        body: payload,
+      }),
+      invalidatesTags: ["Staff"],
+    }),
   }),
 });
 
@@ -69,4 +78,5 @@ export const {
   useDeleteStaffMutation,
   useEditStaffMutation,
   useUpdateStaffStatusMutation,
+  useUnassignedStaffMutation,
 } = StaffApi;

@@ -14,9 +14,12 @@ import {
   useGetpackageQuery,
   useDeletepackageMutation,
   useUpdatePackageStatusMutation,
+  useUnassignedPackageMutation,
 } from "../../redux/api/packageApi";
+import { useAuth } from "../../context/AuthContext";
 
 const PackageList = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);
@@ -30,17 +33,22 @@ const PackageList = () => {
 
   const [deletePackage] = useDeletepackageMutation();
   const [updateStatus] = useUpdatePackageStatusMutation();
+  const [unassignedPackage] = useUnassignedPackageMutation();
 
   const packages = data?.response?.packages ?? [];
   const total = data?.response?.pagination?.totalCount ?? 0;
 
   const handleDelete = async (id) => {
     try {
-      await deletePackage(id).unwrap();
-      toast.success("Package deleted successfully");
+      const payload = {
+        packageId: id,
+        labId: user?._id,
+      };
+      await unassignedPackage(payload).unwrap();
+      toast.success("Package removed successfully");
       refetch();
     } catch {
-      toast.error("Failed to delete package");
+      toast.error("Failed to removed package");
     }
   };
 
@@ -123,7 +131,7 @@ const PackageList = () => {
             title="Are you sure to delete?"
             onConfirm={() => handleDelete(record._id)}
           >
-            <Button danger icon={<DeleteOutlined />} />
+            <Button danger  >Remove</Button>
           </Popconfirm>
         </Space>
       ),

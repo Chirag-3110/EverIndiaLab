@@ -29,10 +29,12 @@ import {
   useGettestFormQuery,
   useUpdatetestFormMutation,
   useDeletetestFormMutation,
+  useUnassignedTestformMutation,
 } from "../../redux/api/testFormApi";
 import { useSidebar } from "../../context/SidebarContext";
 import { formatDate } from "../../utils/utils";
 import { useNavigate } from "react-router";
+import { useAuth } from "../../context/AuthContext";
 
 const { Option } = Select;
 
@@ -43,6 +45,7 @@ const collectionTypes = ["Home Collection", "Lab Visit", "Both"];
 const ageGroups = ["All ages", "Child", "Adult", "Senior"];
 
 const TestFormManager = () => {
+  const { user } = useAuth();
   const { isExpanded, isHovered } = useSidebar();
   const navigate = useNavigate();
 
@@ -50,6 +53,7 @@ const TestFormManager = () => {
   const [addTestForm] = useAddtestFormMutation();
   const [updateTestForm] = useUpdatetestFormMutation();
   const [deleteTestForm] = useDeletetestFormMutation();
+  const [unassignedTestform] = useUnassignedTestformMutation();
 
   const [testForms, setTestForms] = useState([]);
   console.log(testForms);
@@ -84,11 +88,15 @@ const TestFormManager = () => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteTestForm(id).unwrap();
-      toast.success("Test form deleted");
+      const payload = {
+        testFormId: id,
+        labId: user?._id,
+      };
+      await unassignedTestform(payload).unwrap();
+      toast.success("Test form removed");
       refetch();
     } catch {
-      message.error("Error deleting test form");
+      message.error("Error removing test form");
     }
   };
 
@@ -203,17 +211,17 @@ const TestFormManager = () => {
       key: "actions",
       render: (_, record) => (
         <Space size="middle">
-          <Button
+          {/* <Button
             icon={<EditOutlined />}
             onClick={() => openEditModal(record)}
-          ></Button>
+          ></Button> */}
           <Popconfirm
             title="Are you sure delete this test form?"
             onConfirm={() => handleDelete(record._id)}
             okText="Yes"
             cancelText="No"
           >
-            <Button danger icon={<DeleteOutlined />}></Button>
+            <Button danger>Remove</Button>
           </Popconfirm>
         </Space>
       ),
@@ -222,10 +230,10 @@ const TestFormManager = () => {
 
   return (
     <div
-      // style={{
-      //   marginLeft: isExpanded || isHovered ? 0 : 0,
-      //   width: isExpanded || isHovered ? "1180px" : "1200px",
-      // }}
+    // style={{
+    //   marginLeft: isExpanded || isHovered ? 0 : 0,
+    //   width: isExpanded || isHovered ? "1180px" : "1200px",
+    // }}
     >
       <div>
         <PageBreadcrumb pageTitle="Test Forms" />

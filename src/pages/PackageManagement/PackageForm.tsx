@@ -24,6 +24,7 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { toast } from "react-toastify";
 import { useGetCategoryListQuery } from "../../redux/api/categoryApi";
 import { useAuth } from "../../context/AuthContext";
+import { useGetmasterPanelApiQuery } from "../../redux/api/masterPanelApi";
 
 const { Option } = Select;
 
@@ -37,6 +38,8 @@ const PackageForm = () => {
   console.log(editData);
 
   const { data: category } = useGetCategoryListQuery("");
+  const { data: age, isFetching: isLoadingAge } =
+    useGetmasterPanelApiQuery("age_data");
 
   const [form] = Form.useForm();
   const [selectedTests, setSelectedTests] = useState([]);
@@ -83,6 +86,26 @@ const PackageForm = () => {
       });
     }
   }, [editData]);
+
+  console.log(selectedTests);
+  // console.log(packageList)
+
+  const allSelected =
+    testList.length > 0 &&
+    testList.every((test) => selectedTests.includes(test._id));
+
+  const handleSelectAllChange = (e) => {
+    if (e.target.checked) {
+      // Select all test IDs and objects
+      const allTestIds = testList.map((test) => test._id);
+      setSelectedTests(allTestIds);
+      setIncludedTestsDetails(testList);
+    } else {
+      // Deselect all
+      setSelectedTests([]);
+      setIncludedTestsDetails([]);
+    }
+  };
 
   // 💾 Save handler
   const handleSave = async () => {
@@ -178,7 +201,11 @@ const PackageForm = () => {
         </Button>
       </div>
 
-      <Form form={form} layout="vertical">
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{ prescriptionRequired: false }}
+      >
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -232,9 +259,29 @@ const PackageForm = () => {
           </Col>
         </Row>
 
-        <Form.Item name="description" label="Description">
-          <Input.TextArea rows={3} />
-        </Form.Item>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="description" label="Description">
+              <Input.TextArea rows={3} placeholder="description" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            {" "}
+            <Form.Item
+              name="age"
+              label="Age Group"
+              rules={[{ required: true, message: "Select age group" }]}
+            >
+              <Select placeholder="Select age group" allowClear>
+                {age?.response?.setting?.ageRelatedData.map((age) => (
+                  <Option key={age.id} value={age.title}>
+                    {age.title}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Row gutter={16}>
           <Col span={12}>
@@ -291,6 +338,22 @@ const PackageForm = () => {
           allowClear
           className="mb-3"
         />
+
+        {/* Select All Checkbox */}
+        <div style={{ marginBottom: 8 }}>
+          <input
+            type="checkbox"
+            id="selectAll"
+            checked={allSelected}
+            onChange={handleSelectAllChange}
+          />
+          <label
+            htmlFor="selectAll"
+            style={{ marginLeft: 8, userSelect: "none" }}
+          >
+            Select All
+          </label>
+        </div>
 
         <Table
           columns={columns}

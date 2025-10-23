@@ -97,6 +97,16 @@ export const packageApi = createApi({
       }),
       invalidatesTags: ["package"],
     }),
+
+    // Unassigned package
+    unassignedPackage: builder.mutation({
+      query: (payload) => ({
+        url: "packages/unassign-lab",
+        method: "PUT",
+        body: payload,
+      }),
+      invalidatesTags: ["package"],
+    }),
   }),
 });
 
@@ -110,4 +120,5 @@ export const {
   useDeletepackageMutation,
   useUpdatePackageStatusMutation,
   useGetActiveAdminPackageQuery,
+  useUnassignedPackageMutation,
 } = packageApi;

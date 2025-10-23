@@ -70,6 +70,16 @@ export const testFormApi = createApi({
       }),
       invalidatesTags: ["testForm"],
     }),
+
+    // Unassigned test form
+    unassignedTestform: builder.mutation({
+      query: (payload) => ({
+        url: "test-forms/unassign-lab",
+        method: "PUT",
+        body: payload,
+      }),
+      invalidatesTags: ["testForm"],
+    }),
   }),
 });
 
@@ -80,4 +90,5 @@ export const {
   useGettestFormDetailsQuery,
   useUpdatetestFormMutation,
   useDeletetestFormMutation,
+  useUnassignedTestformMutation
 } = testFormApi;

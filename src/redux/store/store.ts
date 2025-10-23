@@ -12,6 +12,7 @@ import { emailApi } from "../api/emailApi";
 import { socialMediaApi } from "../api/socialMediaApi";
 import { faqApi } from "../api/faqApi";
 import { packageApi } from "../api/packageApi";
+import { masterPanelApi } from "../api/masterPanelApi";
 
 export const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ export const store = configureStore({
     [socialMediaApi.reducerPath]: socialMediaApi.reducer,
     [faqApi.reducerPath]: faqApi.reducer,
     [packageApi.reducerPath]: packageApi.reducer,
+    [masterPanelApi.reducerPath]: masterPanelApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -44,5 +46,6 @@ export const store = configureStore({
       socialMediaApi.middleware,
       faqApi.middleware,
       packageApi.middleware,
+      masterPanelApi.middleware,
     ]),
 });

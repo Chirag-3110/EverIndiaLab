@@ -28,7 +28,7 @@ const { Option } = Select;
 
 const PackageAssign = () => {
   const { user } = useAuth();
-  console.log("ajksdk",user)
+  console.log("ajksdk", user);
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
@@ -82,6 +82,26 @@ const PackageAssign = () => {
 
   console.log("lab ID : ", user?._id);
 
+  // console.log(selectedTests);
+  // console.log(packageList)
+
+  const allSelected =
+    packageList.length > 0 &&
+    packageList.every((test) => selectedTests.includes(test._id));
+
+  const handleSelectAllChange = (e) => {
+    if (e.target.checked) {
+      // Select all test IDs and objects
+      const allTestIds = packageList.map((test) => test._id);
+      setSelectedTests(allTestIds);
+      setIncludedTestsDetails(packageList);
+    } else {
+      // Deselect all
+      setSelectedTests([]);
+      setIncludedTestsDetails([]);
+    }
+  };
+
   // 💾 Save handler
   const handleSave = async () => {
     try {
@@ -100,7 +120,7 @@ const PackageAssign = () => {
 
       await assignpackage(payload).unwrap();
       toast.success("Package added successfully");
-      navigate("/packages")
+      navigate("/packages");
 
       //   navigate("/packages");
     } catch (err) {
@@ -252,6 +272,22 @@ const PackageAssign = () => {
           allowClear
           className="mb-3"
         />
+
+        {/* Select All Checkbox */}
+        <div style={{ marginBottom: 8 }}>
+          <input
+            type="checkbox"
+            id="selectAll"
+            checked={allSelected}
+            onChange={handleSelectAllChange}
+          />
+          <label
+            htmlFor="selectAll"
+            style={{ marginLeft: 8, userSelect: "none" }}
+          >
+            Select All
+          </label>
+        </div>
 
         <Table
           columns={columns}

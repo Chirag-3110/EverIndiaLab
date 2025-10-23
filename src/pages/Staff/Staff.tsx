@@ -23,13 +23,16 @@ import {
   useDeleteStaffMutation,
   useEditStaffMutation,
   useUpdateStaffStatusMutation,
+  useUnassignedStaffMutation,
 } from "../../redux/api/staffApi";
 import { formatDate } from "../../utils/utils";
 import { useGetlabsQuery } from "../../redux/api/labsApi";
+import { useAuth } from "../../context/AuthContext";
 
 const { Option } = Select;
 
 const Staff = () => {
+  const { user } = useAuth();
   const [searchText, setSearchText] = useState("");
 
   const { data: labList } = useGetlabsQuery({});
@@ -40,6 +43,7 @@ const Staff = () => {
   const [editUser] = useEditStaffMutation();
   const [deleteUser] = useDeleteStaffMutation();
   const [updateUserStatus] = useUpdateStaffStatusMutation();
+  const [unassignedStaff] = useUnassignedStaffMutation();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
@@ -79,7 +83,11 @@ const Staff = () => {
   // Delete User
   const handleDelete = async (id: string) => {
     try {
-      await deleteUser(id).unwrap();
+      const payload = {
+        userId: id,
+        labId: user?._id,
+      };
+      await unassignedStaff(payload).unwrap();
       toast.success("User Deleted Successfully!");
     } catch {
       toast.error("Failed to delete user");
@@ -106,8 +114,8 @@ const Staff = () => {
       formData.append("name", values.name);
       formData.append("email", values.email || "");
       formData.append("phoneNumber", values.phoneNumber);
-      formData.append("status", values.status === "Active" ? "true" : "false");
-      formData.append("labId", values.labId);
+      formData.append("status", "true");
+      formData.append("labId", user?._id);
       if (imageFile) {
         formData.append("profileImage", imageFile);
       }
@@ -234,18 +242,21 @@ const Staff = () => {
             cancelText="No"
           >
             <Button
-              style={{
-                backgroundColor: "red",
-                color: "white",
-                width: "30px",
-                height: "30px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 0,
-              }}
-              icon={<Trash2 size={16} />}
-            />
+              // style={{
+              //   backgroundColor: "red",
+              //   color: "white",
+              //   width: "30px",
+              //   height: "30px",
+              //   display: "flex",
+              //   alignItems: "center",
+              //   justifyContent: "center",
+              //   padding: 8,
+              // }}
+              danger
+              // icon={<Trash2 size={16} />}
+            >
+              Remove
+            </Button>
           </Popconfirm>
         </div>
       ),
@@ -254,10 +265,12 @@ const Staff = () => {
 
   return (
     <div
-      style={{
-        // marginLeft: isExpanded || isHovered ? 0 : 0,
-        // width: isExpanded || isHovered ? "1180px" : "",
-      }}
+      style={
+        {
+          // marginLeft: isExpanded || isHovered ? 0 : 0,
+          // width: isExpanded || isHovered ? "1180px" : "",
+        }
+      }
     >
       <PageBreadcrumb pageTitle="Phlebotomist" />
 
@@ -271,9 +284,9 @@ const Staff = () => {
           enterButton
           className="w-full sm:w-1/2 md:w-1/3"
         />
-        {/* <Button type="primary" onClick={openAddModal}>
+        <Button type="primary" onClick={openAddModal}>
           + Add Phlebotomist
-        </Button> */}
+        </Button>
       </div>
 
       <Table
@@ -285,7 +298,8 @@ const Staff = () => {
           showSizeChanger: true,
           defaultPageSize: 15,
         }}
-        // scroll={{ x: 1200 }} 
+        // scroll={{ x: 1200 }}
+        scroll={{ x: 1000 }}
         loading={isLoading}
       />
 
@@ -299,7 +313,7 @@ const Staff = () => {
         zIndex={10000}
       >
         <Form form={form} layout="vertical">
-          <Form.Item
+          {/* <Form.Item
             name="labId"
             label="Select Lab"
             rules={[{ required: true, message: "Please select a lab" }]}
@@ -311,7 +325,7 @@ const Staff = () => {
                 </Option>
               ))}
             </Select>
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item
             name="name"
@@ -351,7 +365,7 @@ const Staff = () => {
             <Input placeholder="Enter email" />
           </Form.Item>
 
-          <Form.Item
+          {/* <Form.Item
             name="status"
             label="Status"
             initialValue="Deactive"
@@ -361,7 +375,7 @@ const Staff = () => {
               <Option value="Active">Active</Option>
               <Option value="Deactive">Deactive</Option>
             </Select>
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item label="User Image (Optional)">
             <Upload

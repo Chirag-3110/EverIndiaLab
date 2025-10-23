@@ -194,7 +194,7 @@ const Staff = () => {
       key: "action",
       render: (_: any, record: any) => (
         <div style={{ display: "flex", gap: "8px" }}>
-          <Button
+          {/* <Button
             type="default"
             style={{
               backgroundColor: record.status ? "#F56C6C" : "#67C23A",
@@ -210,8 +210,8 @@ const Staff = () => {
             icon={
               record.status ? <XCircle size={16} /> : <CheckCircle size={16} />
             }
-          />
-          <Button
+          /> */}
+          {/* <Button
             type="default"
             onClick={() => openEditModal(record)}
             style={{
@@ -226,7 +226,7 @@ const Staff = () => {
             }}
           >
             <SquarePen size={16} />
-          </Button>
+          </Button> */}
           <Popconfirm
             title="Are you sure to delete this Phlebotomist member?"
             onConfirm={() => handleDelete(record._id)}

@@ -205,7 +205,7 @@ const PackageForm = () => {
         form={form}
         layout="vertical"
         initialValues={{ prescriptionRequired: false }}
-      >
+      >  
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item

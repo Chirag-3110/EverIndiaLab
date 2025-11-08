@@ -16,6 +16,7 @@ import {
   LogOut,
   LogOutIcon,
   NotebookPen,
+  NotebookText,
   Package,
   Settings,
   TableProperties,
@@ -77,9 +78,12 @@ const navItems: NavItem[] = [
   {
     icon: <NotebookPen />,
     name: "Test Management",
-    subItems: [
-      { name: "Test", path: "/test-form", pro: false },
-    ],
+    subItems: [{ name: "Test", path: "/test-form", pro: false }],
+  },
+  {
+    icon: <NotebookText />,
+    name: "Booking Management",
+    subItems: [{ name: "Booking", path: "/booking-list", pro: false }],
   },
   // {
   //   icon: <TableProperties />,

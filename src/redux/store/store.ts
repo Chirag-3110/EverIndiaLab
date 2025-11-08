@@ -13,6 +13,7 @@ import { socialMediaApi } from "../api/socialMediaApi";
 import { faqApi } from "../api/faqApi";
 import { packageApi } from "../api/packageApi";
 import { masterPanelApi } from "../api/masterPanelApi";
+import { bookingApi } from "../api/bookingApi";
 
 export const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ export const store = configureStore({
     [faqApi.reducerPath]: faqApi.reducer,
     [packageApi.reducerPath]: packageApi.reducer,
     [masterPanelApi.reducerPath]: masterPanelApi.reducer,
+    [bookingApi.reducerPath]: bookingApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -47,5 +49,6 @@ export const store = configureStore({
       faqApi.middleware,
       packageApi.middleware,
       masterPanelApi.middleware,
+      bookingApi.middleware,
     ]),
 });

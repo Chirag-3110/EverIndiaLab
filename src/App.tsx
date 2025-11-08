@@ -30,6 +30,8 @@ import PackageForm from "./pages/PackageManagement/PackageForm";
 import PackageDetails from "./pages/PackageManagement/PackageDetails";
 import PackageAssign from "./pages/PackageManagement/PackageAssign";
 import AssignTestForm from "./pages/Labmanagement/AssignTestFrom";
+import BookingList from "./pages/BookingManagement/BookingList";
+import BookingDetails from "./pages/BookingManagement/BookingDetails";
 
 export default function App() {
   return (
@@ -56,19 +58,29 @@ export default function App() {
             element={<CategoryManagement />}
           />
           <Route index path="/users" element={<User />} />
+
+          {/* Staff Management */}
           <Route index path="/Staff" element={<Staff />} />
+
+          {/* Lab Management */}
           <Route index path="/labs" element={<Labs />} />
           <Route path="/labs/:id" element={<LabDetail />} />
           <Route index path="/lab-management" element={<LabManagement />} />
+
+          {/* Test Management */}
           <Route index path="/test-form" element={<TestFormManager />} />
           <Route index path="/test-form/assign" element={<AssignTestForm />} />
 
+          {/* Packages Management */}
           <Route index path="/packages" element={<PackageList />} />
           <Route index path="/packages/new" element={<PackageForm />} />
-
           <Route path="/packages/edit/:id" element={<PackageForm />} />
           <Route path="/packages/details/:id" element={<PackageDetails />} />
           <Route path="/packages/assign" element={<PackageAssign />} />
+
+          {/* Booking Management */}
+          <Route index path="/booking-list" element={<BookingList />} />
+          <Route index path="/booking/details/:id" element={<BookingDetails />} />
 
           <Route index path="/profile-management" element={<UpdateProfile />} />
           <Route index path="/cms" element={<CMSPage />} />

@@ -16,12 +16,17 @@ const LabDetail = () => {
 
   if (isLoading)
     return (
-      <Spin size="large" style={{ display: "block", margin: "50px auto" }} />
+      <div className="h-[60vh]  flex flex-col justify-center items-center">
+        <Spin size="large" style={{ display: "block", margin: "20px auto" }} />
+        <p>Loading Please Wait...</p>
+      </div>
     );
 
   if (isError || !labData?.response)
     return (
-      <p style={{ color: "red", textAlign: "center" }}>Failed to load lab</p>
+      <div className="h-[60vh]  flex flex-col justify-center items-center">
+        <p style={{ color: "red", textAlign: "center" }}>Failed to load lab</p>
+      </div>
     );
 
   const lab = labData.response?.lab;

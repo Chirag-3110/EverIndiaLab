@@ -238,7 +238,6 @@ const PackageAssign = () => {
       </div>
 
       <Form form={form} layout="vertical">
-        {/* Slected Tests */}
         <h3 className="font-semibold mb-2">Selected Tests</h3>
 
         {includedTestsDetails.length > 0 ? (
@@ -291,7 +290,7 @@ const PackageAssign = () => {
 
         <Table
           columns={columns}
-          dataSource={[...packageList].reverse()} // 👈 show recently added packages first
+          dataSource={[...packageList].reverse()}
           rowKey="_id"
           expandable={{
             expandedRowRender: (record) => (

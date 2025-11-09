@@ -59,6 +59,25 @@ export const bookingApi = createApi({
       }),
       invalidatesTags: ["Booking"],
     }),
+
+    // Assign Staff
+    assignStaffBooking: builder.mutation({
+      query: ({ id, body }) => ({
+        url: `booking/assign-booking-to-staff/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Booking"],
+    }),
+    // Complete Payment
+    markAsCompleteBooking: builder.mutation({
+      query: (id) => ({
+        url: `booking/mark-complete-booking-by-lab/${id}`,
+        method: "PUT",
+        body: {},
+      }),
+      invalidatesTags: ["Booking"],
+    }),
   }),
 });
 
@@ -68,4 +87,6 @@ export const {
   useGetBookingDetailsQuery,
   useDeleteBookingMutation,
   useGetAllActiveBookingQuery,
+  useAssignStaffBookingMutation,
+  useMarkAsCompleteBookingMutation
 } = bookingApi;

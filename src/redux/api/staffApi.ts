@@ -56,8 +56,8 @@ export const StaffApi = createApi({
     }),
 
     // Get All Assigned Staffs
-    getStaffs: builder.query<any, String>({
-      query: (searchText) => `lab/list-lab-users?search=${searchText}`,
+    getStaffs: builder.query({
+      query: ({searchText}) => `lab/list-lab-users?search=${searchText}`,
       providesTags: ["Staff"],
     }),
     // Unassigned Staff

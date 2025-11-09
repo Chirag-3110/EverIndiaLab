@@ -1,11 +1,23 @@
-import React from "react";
-import { Tabs, Descriptions, Button, Tag, Table, Spin } from "antd";
+import React, { useState } from "react";
+import {
+  Tabs,
+  Descriptions,
+  Button,
+  Tag,
+  Table,
+  Spin,
+  Input,
+  Form,
+} from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  useAssignStaffBookingMutation,
   useGetBookingDetailsQuery,
   useGetBookingQuery,
 } from "../../redux/api/bookingApi";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import { useGetStaffsQuery } from "../../redux/api/staffApi";
+import { toast } from "react-toastify";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
@@ -13,6 +25,73 @@ const BookingDetails = () => {
   const { data, isLoading } = useGetBookingDetailsQuery(id);
 
   const booking: any = data || [];
+  const [form] = Form.useForm();
+  const [selectedTests, setSelectedTests] = useState([]);
+  const [includedTestsDetails, setIncludedTestsDetails] = useState([]);
+
+  const [searchText, setSearchText] = useState("");
+
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+
+  const [assignStaffBooking] = useAssignStaffBookingMutation();
+  const { data: StaffList, isFetching } = useGetStaffsQuery({
+    searchText,
+    page,
+    pageSize: 10,
+  });
+
+  const staffList = StaffList?.response?.users ?? [];
+
+  const total = StaffList?.response?.users?.length ?? 0;
+
+  const handleRemoveSelectedTest = (id) => {
+    setSelectedTests((prev) => prev.filter((t) => t !== id));
+    setIncludedTestsDetails((prev) => prev.filter((t) => t._id !== id));
+  };
+
+  const handleCheckboxChange = (checked, test) => {
+    if (checked) {
+      if (!selectedTests.includes(test._id)) {
+        setSelectedTests((prev) => [...prev, test._id]);
+        setIncludedTestsDetails((prev) => [...prev, test]);
+      }
+    } else {
+      handleRemoveSelectedTest(test._id);
+    }
+  };
+
+  // 💾 Save handler
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields();
+
+      const payload = {
+        staffId: selectedTests.map((t) => (typeof t === "object" ? t._id : t)),
+      };
+
+      console.log(payload);
+      await assignStaffBooking({ id: id, body: payload }).unwrap();
+      toast.success("Staff Assigned successfully");
+      navigate("/booking-list");
+    } catch (err) {
+      console.error("Save error:", err);
+
+      if (err?.data?.message) {
+        if (Array.isArray(err.data.message)) {
+          err.data.message.forEach((msg) => {
+            toast.error(`${msg.field ? msg.field + ": " : ""}${msg.message}`);
+          });
+        } else if (typeof err.data.message === "string") {
+          toast.error(err.data.message);
+        } else {
+          toast.error("Something went wrong. Please try again.");
+        }
+      } else {
+        toast.error("Failed to save. Check all fields or your connection.");
+      }
+    }
+  };
 
   if (isLoading)
     return (
@@ -38,6 +117,36 @@ const BookingDetails = () => {
       render: (price) => `₹${price}`,
     },
     { title: "Quantity", dataIndex: "quantity", key: "quantity" },
+  ];
+
+  // 🧮 Table Columns
+  const columns = [
+    {
+      title: "Select",
+      dataIndex: "_id",
+      render: (id, record) => (
+        <input
+          type="checkbox"
+          checked={selectedTests.includes(id)}
+          onChange={(e) => handleCheckboxChange(e.target.checked, record)}
+        />
+      ),
+    },
+    {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+    },
+    {
+      title: "Contact Number",
+      dataIndex: "contactNumber",
+      key: "contactNumber",
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
+    },
   ];
 
   return (
@@ -96,7 +205,7 @@ const BookingDetails = () => {
           </Descriptions>
         </Tabs.TabPane>
 
-        <Tabs.TabPane tab="Items" key="3">
+        <Tabs.TabPane tab="Assigned Packages/Tests" key="3">
           <Table
             columns={itemsColumns}
             dataSource={booking?.response?.data.items}
@@ -117,10 +226,74 @@ const BookingDetails = () => {
               {booking?.response?.data.assignedStaffId?.phoneNumber || "-"}
             </Descriptions.Item>
           </Descriptions>
-          <Button type="primary" style={{ marginTop: 16 }}>
-            Assign Staff
-          </Button>
         </Tabs.TabPane>
+
+        {!booking?.response?.data.assignedStaffId && (
+          <div>
+            <Form form={form} layout="vertical">
+              {/* Slected Tests */}
+              <h3 className="font-semibold mb-2">Selected Tests</h3>
+
+              {includedTestsDetails.length > 0 ? (
+                <div className="mb-4 flex flex-wrap gap-2">
+                  {includedTestsDetails.map((test) => (
+                    <div
+                      key={test._id}
+                      className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full border"
+                    >
+                      <span>{test.name}</span>
+                      <Button
+                        size="small"
+                        danger
+                        onClick={() => handleRemoveSelectedTest(test._id)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 mb-4">No tests selected yet</p>
+              )}
+
+              <h3 className="font-semibold mb-2">Select Tests</h3>
+
+              <Input.Search
+                placeholder="Search tests..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                allowClear
+                className="mb-3"
+              />
+
+              <Table
+                columns={columns}
+                dataSource={staffList}
+                rowKey="_id"
+                pagination={{
+                  current: page,
+                  pageSize: pageSize,
+                  total: total, // USE API total here!
+                  showSizeChanger: true,
+                  pageSizeOptions: ["10", "25", "50", "100"],
+                }}
+                scroll={{ x: 1200 }}
+                loading={isFetching}
+                onChange={(pagination) => {
+                  setPage(pagination.current);
+                  setPageSize(pagination.pageSize);
+                }}
+              />
+
+              <div className="mt-6 flex justify-end gap-3">
+                <Button onClick={() => navigate("/packages")}>Cancel</Button>
+                <Button type="primary" onClick={handleSave}>
+                  {"Assign Staff"}
+                </Button>
+              </div>
+            </Form>
+          </div>
+        )}
       </Tabs>
     </div>
   );

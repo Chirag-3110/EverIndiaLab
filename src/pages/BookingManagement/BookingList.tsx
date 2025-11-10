@@ -14,6 +14,7 @@ import { EyeIcon, LucideBanknote } from "lucide-react";
 const BookingList = () => {
   // Your existing states
   const { user } = useAuth();
+  console.log(user)
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);

@@ -12,9 +12,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ✅ Login: store user + token
   function login(data: { user: any; token: string }) {
     if (!data?.user || !data?.token) return;
+    setUser(data.user);
     localStorage.setItem("user", JSON.stringify(data.user));
     localStorage.setItem("l_t_K", data.token);
-    setUser(data.user);
   }
 
   // ✅ Logout: clear everything
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, isAuthenticated, updateUser }}
+      value={{ user, login, logout, isAuthenticated, updateUser, setUser }}
     >
       {children}
     </AuthContext.Provider>

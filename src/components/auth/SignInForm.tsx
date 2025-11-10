@@ -16,7 +16,7 @@ export default function OTPLoginForm() {
   const timerRef = useRef(null);
   const [showAccessDenied, setShowAccessDenied] = useState(false);
 
-  const { login } = useAuth();
+  const { login, setUser } = useAuth();
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
@@ -109,6 +109,7 @@ export default function OTPLoginForm() {
       }
 
       // login({ lab, token });
+      setUser(lab);
       localStorage.setItem("lab", JSON.stringify(lab));
       localStorage.setItem("l_t_K", token);
       navigate("/");

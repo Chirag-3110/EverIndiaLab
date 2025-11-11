@@ -71,10 +71,10 @@ export const bookingApi = createApi({
     }),
     // Complete Payment
     markAsCompleteBooking: builder.mutation({
-      query: (id) => ({
+      query: ({ fd, id }) => ({
         url: `booking/mark-complete-booking-by-lab/${id}`,
         method: "PUT",
-        body: {},
+        body: fd,
       }),
       invalidatesTags: ["Booking"],
     }),
@@ -88,5 +88,5 @@ export const {
   useDeleteBookingMutation,
   useGetAllActiveBookingQuery,
   useAssignStaffBookingMutation,
-  useMarkAsCompleteBookingMutation
+  useMarkAsCompleteBookingMutation,
 } = bookingApi;

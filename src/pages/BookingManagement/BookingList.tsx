@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Input, Tag } from "antd";
+import { Table, Button, Input, Tag, Upload, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -10,20 +10,23 @@ import {
 } from "../../redux/api/bookingApi";
 import { formatDateTime } from "../../utils/utils";
 import { EyeIcon, LucideBanknote } from "lucide-react";
+import { UploadOutlined } from "@ant-design/icons";
 
 const BookingList = () => {
-  // Your existing states
   const { user } = useAuth();
-  console.log(user)
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
-  // For custom popup
+  // Popup controls
   const [popupVisible, setPopupVisible] = useState(false);
+  const [uploadVisible, setUploadVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
-  const [markAsCompleteBooking] = useMarkAsCompleteBookingMutation();
+  const [file, setFile] = useState(null);
+
+  const [markAsCompleteBooking, { isLoading: isSubmiting }] =
+    useMarkAsCompleteBookingMutation();
 
   const { data, isLoading } = useGetBookingQuery({
     searchText,
@@ -35,21 +38,87 @@ const BookingList = () => {
   const labBooings = data?.response?.data ?? [];
   const total = data?.response?.data?.length ?? 0;
 
-  const handlePaymentComplete = async (record) => {
-    await markAsCompleteBooking(record._id).unwrap();
-    toast.success("Payment marked as complete.");
-    closePopup();
+  // ✅ File handler
+  const handleFileChange = (info) => {
+    // Get latest file from fileList (AntD stores it here)
+    const latestFile = info.fileList[info.fileList.length - 1];
+
+    if (!latestFile) {
+      setFile(null);
+      return;
+    }
+
+    // If file was removed
+    if (info.file.status === "removed" || info.fileList.length === 0) {
+      setFile(null);
+      return;
+    }
+
+    const fileObj = latestFile.originFileObj;
+    if (!fileObj) {
+      console.warn("File object not available yet");
+      return;
+    }
+
+    // Validate type
+    const isValid =
+      fileObj.type === "application/pdf" || fileObj.type.startsWith("image/");
+    if (!isValid) {
+      message.error("Only PDF or image files are allowed!");
+      return;
+    }
+
+    setFile(fileObj);
   };
 
-  // Show popup for cash payment
+  // ✅ API handler with file
+  const handlePaymentComplete = async (record) => {
+    if (!file) {
+      toast.warning(
+        "Please upload a report file (PDF or image) before proceeding."
+      );
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("bookingId", record._id);
+
+    try {
+      await markAsCompleteBooking({
+        fd: formData,
+        id: record._id,
+      }).unwrap();
+      toast.success("Payment marked as complete with report uploaded.");
+      closeAllPopups();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to mark payment complete.");
+    }
+  };
+
+  // ✅ For CASH: show confirmation first
   const handleCashPayment = (record) => {
     setSelectedRecord(record);
     setPopupVisible(true);
   };
 
-  const closePopup = () => {
+  const handleCashConfirm = () => {
     setPopupVisible(false);
+    setUploadVisible(true);
+  };
+
+  // ✅ For ONLINE: directly show upload popup
+  const handleOnlinePayment = (record) => {
+    setSelectedRecord(record);
+    setUploadVisible(true);
+  };
+
+  const closeAllPopups = () => {
+    setPopupVisible(false);
+    setUploadVisible(false);
     setSelectedRecord(null);
+    setFile(null);
   };
 
   const columns = [
@@ -105,7 +174,7 @@ const BookingList = () => {
           <Button
             onClick={() => {
               if (record.paymentType === "online") {
-                handlePaymentComplete(record);
+                handleOnlinePayment(record);
               } else if (record.paymentType === "cash") {
                 handleCashPayment(record);
               }
@@ -117,10 +186,7 @@ const BookingList = () => {
               fontWeight: "600",
             }}
           >
-            <LucideBanknote
-              size={18}
-              style={{ marginRight: 0, color: "#27ae60" }}
-            />
+            <LucideBanknote size={18} style={{ color: "#27ae60" }} />
             Payment
           </Button>
         </div>
@@ -159,14 +225,51 @@ const BookingList = () => {
         }}
       />
 
-      {/* Custom Confirmation Popup */}
+      {/* 🧾 Cash Confirmation Popup */}
       {popupVisible && (
         <div style={overlayStyle as React.CSSProperties}>
           <div style={popupStyle as React.CSSProperties}>
             <p>
-              Are you accepting the payment in "CASH" from the assigned staff
-              member?
+              Are you accepting the payment in <b>cash</b> from the assigned
+              staff member?
             </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-around",
+                marginTop: 20,
+              }}
+            >
+              <button style={yesButtonStyle} onClick={handleCashConfirm}>
+                Yes
+              </button>
+              <button style={noButtonStyle} onClick={closeAllPopups}>
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 📁 Report Upload Popup (used in both cash and online) */}
+      {uploadVisible && (
+        <div style={overlayStyle as React.CSSProperties}>
+          <div style={popupStyle as React.CSSProperties}>
+            <p style={{ fontSize: "16px", marginBottom: "10px" }}>
+              Upload report (PDF/Image) before completing payment
+            </p>
+
+            <Upload
+              beforeUpload={() => false}
+              onChange={handleFileChange}
+              accept=".pdf,image/*"
+              maxCount={1}
+              fileList={file ? [{ uid: "1", name: file.name }] : []}
+              onRemove={() => setFile(null)}
+            >
+              <Button icon={<UploadOutlined />}>Upload Report</Button>
+            </Upload>
+
             <div
               style={{
                 display: "flex",
@@ -177,11 +280,12 @@ const BookingList = () => {
               <button
                 style={yesButtonStyle}
                 onClick={() => handlePaymentComplete(selectedRecord)}
+                disabled={isSubmiting}
               >
-                Yes
+                {isSubmiting ? "Wait.." : " Submit"}
               </button>
-              <button style={noButtonStyle} onClick={closePopup}>
-                No
+              <button style={noButtonStyle} onClick={closeAllPopups}>
+                Cancel
               </button>
             </div>
           </div>
@@ -191,7 +295,7 @@ const BookingList = () => {
   );
 };
 
-// Styles for custom popup
+// Styles for custom popups
 const overlayStyle = {
   position: "fixed",
   top: 0,
@@ -210,7 +314,7 @@ const popupStyle = {
   padding: "20px 30px",
   borderRadius: "8px",
   boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
-  maxWidth: "350px",
+  maxWidth: "450px",
   textAlign: "center",
 };
 

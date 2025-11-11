@@ -35,8 +35,8 @@ const Staff = () => {
   const { user } = useAuth();
   const [searchText, setSearchText] = useState("");
 
-  const { data: labList } = useGetlabsQuery({});
   const { data, isLoading } = useGetStaffsQuery(searchText);
+  const { data: labList } = useGetlabsQuery({});
   const { isExpanded, isHovered } = useSidebar();
 
   const [addUser] = useAddStaffMutation();

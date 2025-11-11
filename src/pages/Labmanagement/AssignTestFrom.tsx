@@ -40,7 +40,7 @@ const AssignTestForm = () => {
   const [selectedTests, setSelectedTests] = useState([]);
   const [includedTestsDetails, setIncludedTestsDetails] = useState([]);
 
-  console.log(selectedTests)
+  console.log(selectedTests);
 
   const [addtestForm] = useAddtestFormMutation();
   const [updatePackage] = useUpdatepackageMutation();
@@ -48,17 +48,18 @@ const AssignTestForm = () => {
   const [searchText, setSearchText] = useState("");
 
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(15);
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: AdminTestForm, isFetching } = useGetAdminTestFormQuery({
     searchText,
     page,
-    pageSize: 10,
+    pageSize,
   });
   // console.log(AdminTestForm);
 
   const packageList = AdminTestForm?.response?.testForms ?? [];
-  // console.log(AdminTestForm);
+
+  // console.log(packageList.length);
   const total = AdminTestForm?.response?.pagination?.totalCount ?? 0;
 
   const allSelected =
@@ -266,7 +267,7 @@ const AssignTestForm = () => {
           pagination={{
             current: page,
             pageSize: pageSize,
-            total: total, // USE API total here!
+            total: total,
             showSizeChanger: true,
             pageSizeOptions: ["10", "25", "50", "100"],
           }}

@@ -205,7 +205,7 @@ const PackageForm = () => {
         form={form}
         layout="vertical"
         initialValues={{ prescriptionRequired: false }}
-      >  
+      >
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -295,6 +295,20 @@ const PackageForm = () => {
             </Form.Item>
           </Col>
         </Row>
+
+        <Form.Item
+          name="searchparams"
+          label="Search (Tags)"
+          rules={[{ required: false }]}
+        >
+          <Select
+            mode="tags"
+            placeholder="Add tags"
+            style={{ width: "100%" }}
+            tokenSeparators={[","]}
+            allowClear
+          />
+        </Form.Item>
 
         <Form.Item
           name="prescriptionRequired"

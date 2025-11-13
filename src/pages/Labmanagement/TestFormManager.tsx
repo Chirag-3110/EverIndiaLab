@@ -141,15 +141,16 @@ const TestFormManager = () => {
   };
 
   const columns = [
-    { title: "Title", dataIndex: "title", key: "title" },
+    { title: "Tests", dataIndex: "title", key: "title", minWidth:150
+     },
     { title: "Category", dataIndex: "category", key: "category" },
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-      minWidth: 250,
-      render: (value) => <span>{value || "--"}</span>,
-    },
+    // {
+    //   title: "Description",
+    //   dataIndex: "description",
+    //   key: "description",
+    //   minWidth: 250,
+    //   render: (value) => <span>{value || "--"}</span>,
+    // },
     {
       title: "Sample Types",
       dataIndex: "sampleType",

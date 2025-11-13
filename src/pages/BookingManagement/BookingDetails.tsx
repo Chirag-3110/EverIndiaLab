@@ -18,6 +18,7 @@ import {
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { useGetStaffsQuery } from "../../redux/api/staffApi";
 import { toast } from "react-toastify";
+import { formatDateTime } from "../../utils/utils";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
@@ -162,8 +163,12 @@ const BookingDetails = () => {
               {booking?.response?.data.orderId}
             </Descriptions.Item>
             <Descriptions.Item label="Booking Date">
-              {new Date(booking?.response?.data.bookingDate).toLocaleString()}
+              {formatDateTime(booking?.response?.data.bookingDate)}
+              {booking?.response?.data?.slot
+                ? ` (${booking.response.data.slot.startTime} - ${booking.response.data.slot.endTime})`
+                : ""}
             </Descriptions.Item>
+
             <Descriptions.Item label="Status">
               <Tag
                 color={
@@ -178,10 +183,11 @@ const BookingDetails = () => {
             <Descriptions.Item label="Payment Type">
               {booking?.response?.data.paymentType}
             </Descriptions.Item>
+            <Descriptions.Item label="Address">{`${booking?.response?.data.userAddress.addressLine1}, ${booking?.response?.data.userAddress.city}, ${booking?.response?.data.userAddress.state}`}</Descriptions.Item>
           </Descriptions>
         </Tabs.TabPane>
 
-        <Tabs.TabPane tab="Family Member Details" key="2">
+        <Tabs.TabPane tab="Member Details" key="2">
           <Descriptions bordered column={1} size="small">
             <Descriptions.Item label="Name">
               {booking?.response?.data.familyMemberId?.name}
@@ -201,7 +207,6 @@ const BookingDetails = () => {
             <Descriptions.Item label="Email">
               {booking?.response?.data.familyMemberId?.email}
             </Descriptions.Item>
-            <Descriptions.Item label="Address">{`${booking?.response?.data.userAddress.addressLine1}, ${booking?.response?.data.userAddress.city}, ${booking?.response?.data.userAddress.state}`}</Descriptions.Item>
           </Descriptions>
         </Tabs.TabPane>
 
@@ -218,6 +223,72 @@ const BookingDetails = () => {
         </Tabs.TabPane>
 
         <Tabs.TabPane tab="Staff" key="4">
+          {!booking?.response?.data.assignedStaffId && (
+            <div>
+              <Form form={form} layout="vertical">
+                {/* Slected Tests */}
+                <h3 className="font-semibold mb-2">Selected Tests</h3>
+
+                {includedTestsDetails.length > 0 ? (
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    {includedTestsDetails.map((test) => (
+                      <div
+                        key={test._id}
+                        className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full border"
+                      >
+                        <span>{test.name}</span>
+                        <Button
+                          size="small"
+                          danger
+                          onClick={() => handleRemoveSelectedTest(test._id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 mb-4">No tests selected yet</p>
+                )}
+
+                <h3 className="font-semibold mb-2">Select Tests</h3>
+
+                <Input.Search
+                  placeholder="Search tests..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  allowClear
+                  className="mb-3"
+                />
+
+                <Table
+                  columns={columns}
+                  dataSource={staffList}
+                  rowKey="_id"
+                  pagination={{
+                    current: page,
+                    pageSize: pageSize,
+                    total: total, // USE API total here!
+                    showSizeChanger: true,
+                    pageSizeOptions: ["10", "25", "50", "100"],
+                  }}
+                  scroll={{ x: 1200 }}
+                  loading={isFetching}
+                  onChange={(pagination) => {
+                    setPage(pagination.current);
+                    setPageSize(pagination.pageSize);
+                  }}
+                />
+
+                <div className="mt-6 flex justify-end gap-3">
+                  <Button onClick={() => navigate("/packages")}>Cancel</Button>
+                  <Button type="primary" onClick={handleSave}>
+                    {"Assign Staff"}
+                  </Button>
+                </div>
+              </Form>
+            </div>
+          )}
           <Descriptions bordered column={1} size="small">
             <Descriptions.Item label="Assigned Staff">
               {booking?.response?.data.assignedStaffId?.name || "Not assigned"}
@@ -227,73 +298,6 @@ const BookingDetails = () => {
             </Descriptions.Item>
           </Descriptions>
         </Tabs.TabPane>
-
-        {!booking?.response?.data.assignedStaffId && (
-          <div>
-            <Form form={form} layout="vertical">
-              {/* Slected Tests */}
-              <h3 className="font-semibold mb-2">Selected Tests</h3>
-
-              {includedTestsDetails.length > 0 ? (
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {includedTestsDetails.map((test) => (
-                    <div
-                      key={test._id}
-                      className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full border"
-                    >
-                      <span>{test.name}</span>
-                      <Button
-                        size="small"
-                        danger
-                        onClick={() => handleRemoveSelectedTest(test._id)}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 mb-4">No tests selected yet</p>
-              )}
-
-              <h3 className="font-semibold mb-2">Select Tests</h3>
-
-              <Input.Search
-                placeholder="Search tests..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                allowClear
-                className="mb-3"
-              />
-
-              <Table
-                columns={columns}
-                dataSource={staffList}
-                rowKey="_id"
-                pagination={{
-                  current: page,
-                  pageSize: pageSize,
-                  total: total, // USE API total here!
-                  showSizeChanger: true,
-                  pageSizeOptions: ["10", "25", "50", "100"],
-                }}
-                scroll={{ x: 1200 }}
-                loading={isFetching}
-                onChange={(pagination) => {
-                  setPage(pagination.current);
-                  setPageSize(pagination.pageSize);
-                }}
-              />
-
-              <div className="mt-6 flex justify-end gap-3">
-                <Button onClick={() => navigate("/packages")}>Cancel</Button>
-                <Button type="primary" onClick={handleSave}>
-                  {"Assign Staff"}
-                </Button>
-              </div>
-            </Form>
-          </div>
-        )}
       </Tabs>
     </div>
   );

@@ -37,11 +37,6 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  // {
-  //   icon: <GridIcon />,
-  //   name: "Dashboard",
-  //   subItems: [{ name: "Ecommerce", path: "/", pro: false }],
-  // },
   {
     icon: <GridIcon />,
     name: "Dashboard",
@@ -52,11 +47,7 @@ const navItems: NavItem[] = [
     name: "Category Management",
     path: "/category-management",
   },
-  // {
-  //   icon: <User />,
-  //   name: "Users",
-  //   path: "/users",
-  // },
+
   {
     icon: <UsersRound />,
     name: "Phlebotomist",
@@ -67,14 +58,7 @@ const navItems: NavItem[] = [
     name: "Package Management",
     subItems: [{ name: "Packages", path: "/packages", pro: false }],
   },
-  // {
-  //   icon: <Hospital />,
-  //   name: "Lab Management",
-  //   subItems: [
-  //     { name: "Labs", path: "/labs", pro: false },
-  //     { name: "Lab Management", path: "/lab-management", pro: false },
-  //   ],
-  // },
+
   {
     icon: <NotebookPen />,
     name: "Test Management",
@@ -85,42 +69,6 @@ const navItems: NavItem[] = [
     name: "Booking Management",
     subItems: [{ name: "Booking", path: "/booking-list", pro: false }],
   },
-  // {
-  //   icon: <TableProperties />,
-  //   name: "Rental Properties",
-  //   path: "/property",
-  // },
-  // {
-  //   icon: <Building2 />,
-  //   name: "Convention Space",
-  //   path: "/convention",
-  // },
-  // {
-  //   icon: <TvIcon />,
-  //   name: "Ads",
-  //   path: "/ads",
-  // },
-  // {
-  //   icon: <Ticket />,
-  //   name: "Ticket",
-  //   path: "/tickets",
-  // },
-  // {
-  //   icon: <BadgeIndianRupee />,
-  //   name: "Set Charges",
-  //   path: "/charges",
-  // },
-  // {
-  //   icon: <Settings />,
-  //   name: "Settings",
-  //   subItems: [
-  //     { name: "Contact", path: "/contact", pro: false },
-  //     { name: "Email Logs", path: "/email-logs", pro: false },
-  //     { name: "Faq", path: "/faq", pro: false },
-  //     { name: "Site Setting", path: "/site-settings", pro: false },
-  //     { name: "CMS", path: "/cms", pro: false },
-  //   ],
-  // },
 ];
 
 const AppSidebar: React.FC = () => {
@@ -167,9 +115,22 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  const handleSubmenuToggle = (index: number) => {
-    setOpenSubmenu((prev) => (prev === index ? null : index));
-  };
+   const handleSubmenuToggle = (index: number) => {
+     // If clicking the same menu again → close it
+     if (openSubmenu === index) {
+       setOpenSubmenu(null);
+       return;
+     }
+
+     // Otherwise, close any open dropdown and open the new one
+     setOpenSubmenu(index);
+
+     // Automatically navigate to first child
+     const subItems = navItems[index]?.subItems;
+     if (subItems && subItems.length > 0 && subItems[0].path) {
+       navigate(subItems[0].path);
+     }
+   };
 
   return (
     <aside

@@ -1,5 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { Table, Button, Input, Tag, Upload, message } from "antd";
+import React, { useMemo, useState } from "react";
+import {
+  Table,
+  Button,
+  Input,
+  Tag,
+  Upload,
+  message,
+  Select,
+  DatePicker,
+} from "antd";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -8,22 +17,36 @@ import {
   useGetBookingQuery,
   useMarkAsCompleteBookingMutation,
 } from "../../redux/api/bookingApi";
-import { formatDateTime } from "../../utils/utils";
+import { formatDate, formatDateTime } from "../../utils/utils";
 import { EyeIcon, LucideBanknote } from "lucide-react";
 import { UploadOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+
+const { RangePicker } = DatePicker;
 
 const BookingList = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState<string | null>(
+    null
+  );
+  const [collectionTypeFilter, setCollectionTypeFilter] = useState<
+    string | null
+  >(null);
+  const [dateRange, setDateRange] = useState<
+    [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
+  >(null);
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
   // Popup controls
   const [popupVisible, setPopupVisible] = useState(false);
   const [uploadVisible, setUploadVisible] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState(null);
-  const [file, setFile] = useState(null);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [file, setFile] = useState<any>(null);
 
   const [markAsCompleteBooking, { isLoading: isSubmiting }] =
     useMarkAsCompleteBookingMutation();
@@ -35,61 +58,34 @@ const BookingList = () => {
     id: user?._id,
   });
 
-  const labBooings = data?.response?.data ?? [];
-  const total = data?.response?.data?.length ?? 0;
+  const labBookings = data?.response?.data ?? [];
 
   // ✅ File handler
-  const handleFileChange = (info) => {
-    // Get latest file from fileList (AntD stores it here)
+  const handleFileChange = (info: any) => {
     const latestFile = info.fileList[info.fileList.length - 1];
-
-    if (!latestFile) {
-      setFile(null);
-      return;
-    }
-
-    // If file was removed
-    if (info.file.status === "removed" || info.fileList.length === 0) {
-      setFile(null);
-      return;
-    }
+    if (!latestFile) return setFile(null);
 
     const fileObj = latestFile.originFileObj;
-    if (!fileObj) {
-      console.warn("File object not available yet");
-      return;
-    }
+    if (!fileObj) return;
 
-    // Validate type
     const isValid =
       fileObj.type === "application/pdf" || fileObj.type.startsWith("image/");
-    if (!isValid) {
-      message.error("Only PDF or image files are allowed!");
-      return;
-    }
+    if (!isValid) return message.error("Only PDF or image files are allowed!");
 
     setFile(fileObj);
   };
 
-  // ✅ API handler with file
-  const handlePaymentComplete = async (record) => {
-    if (!file) {
-      toast.warning(
-        "Please upload a report file (PDF or image) before proceeding."
-      );
-      return;
-    }
-
+  // ✅ Handle Payment Completion
+  const handlePaymentComplete = async (record: any) => {
+    if (!file)
+      return toast.warning("Please upload a report before submitting.");
     const formData = new FormData();
     formData.append("image", file);
     formData.append("bookingId", record._id);
 
     try {
-      await markAsCompleteBooking({
-        fd: formData,
-        id: record._id,
-      }).unwrap();
-      toast.success("Payment marked as complete with report uploaded.");
+      await markAsCompleteBooking({ fd: formData, id: record._id }).unwrap();
+      toast.success("Payment marked as complete!");
       closeAllPopups();
     } catch (err) {
       console.error(err);
@@ -97,8 +93,8 @@ const BookingList = () => {
     }
   };
 
-  // ✅ For CASH: show confirmation first
-  const handleCashPayment = (record) => {
+  // ✅ Cash & Online Payment Flow
+  const handleCashPayment = (record: any) => {
     setSelectedRecord(record);
     setPopupVisible(true);
   };
@@ -108,8 +104,7 @@ const BookingList = () => {
     setUploadVisible(true);
   };
 
-  // ✅ For ONLINE: directly show upload popup
-  const handleOnlinePayment = (record) => {
+  const handleOnlinePayment = (record: any) => {
     setSelectedRecord(record);
     setUploadVisible(true);
   };
@@ -121,23 +116,67 @@ const BookingList = () => {
     setFile(null);
   };
 
+  // ✅ Apply frontend filters
+  const filteredData = useMemo(() => {
+    return labBookings.filter((item: any) => {
+      const matchesSearch =
+        !searchText ||
+        item.orderId?.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.userId?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.userAddress?.addressLine1
+          ?.toLowerCase()
+          .includes(searchText.toLowerCase());
+
+      const matchesStatus = !statusFilter || item.status === statusFilter;
+      const matchesPayment =
+        !paymentTypeFilter || item.paymentType === paymentTypeFilter;
+      const matchesCollection =
+        !collectionTypeFilter ||
+        item.amount?.collectiontype === collectionTypeFilter;
+
+      const matchesDate =
+        !dateRange ||
+        (!dateRange[0] && !dateRange[1]) ||
+        (dayjs(item.bookingDate).isAfter(dateRange[0]) &&
+          dayjs(item.bookingDate).isBefore(dateRange[1]));
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesPayment &&
+        matchesDate &&
+        matchesCollection
+      );
+    });
+  }, [
+    labBookings,
+    searchText,
+    statusFilter,
+    paymentTypeFilter,
+    collectionTypeFilter,
+    dateRange,
+  ]);
+
+  // ✅ Table Columns
   const columns = [
-    {
-      title: "Order ID",
-      dataIndex: "orderId",
-      key: "orderId",
-    },
+    { title: "Order ID", dataIndex: "orderId", key: "orderId" },
     {
       title: "Booking Date",
       dataIndex: "bookingDate",
       key: "bookingDate",
-      render: (date) => formatDateTime(date),
+      render: (date: string, record: any) => {
+        const dateStr = formatDate(date);
+        const slotStr = record.slot
+          ? ` (${record.slot.startTime} - ${record.slot.endTime})`
+          : "";
+        return `${dateStr}${slotStr}`;
+      },
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status) => (
+      render: (status: string) => (
         <Tag color={status === "pending" ? "orange" : "green"}>{status}</Tag>
       ),
     },
@@ -145,13 +184,9 @@ const BookingList = () => {
       title: "Customer Name",
       dataIndex: ["userId", "name"],
       key: "customerName",
-      render: (_, record) => record.userId?.name || "-",
+      render: (_: any, record: any) => record.userId?.name || "-",
     },
-    {
-      title: "Payment Type",
-      dataIndex: "paymentType",
-      key: "paymentType",
-    },
+    { title: "Payment Type", dataIndex: "paymentType", key: "paymentType" },
     {
       title: "Collection Type",
       dataIndex: ["amount", "collectiontype"],
@@ -161,34 +196,52 @@ const BookingList = () => {
       title: "Total Amount",
       dataIndex: ["amount", "finalAmount"],
       key: "finalAmount",
-      render: (amount) => `₹${amount}`,
+      render: (amount: number) => `₹${amount}`,
+    },
+    {
+      title: "Address",
+      dataIndex: "address",
+      key: "address",
+      render: (_: any, record: any) =>
+        [
+          record.userAddress?.addressLine1,
+          record.userAddress?.city,
+          record.userAddress?.state,
+        ]
+          .filter(Boolean)
+          .join(", "),
+    },
+    {
+      title: "Created Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => formatDateTime(date),
     },
     {
       title: "Actions",
       key: "actions",
-      render: (_, record) => (
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+      render: (_: any, record: any) => (
+        <div style={{ display: "flex", gap: "8px" }}>
           <Button onClick={() => navigate(`/booking/details/${record._id}`)}>
             <EyeIcon size={18} />
           </Button>
-          <Button
-            onClick={() => {
-              if (record.paymentType === "online") {
-                handleOnlinePayment(record);
-              } else if (record.paymentType === "cash") {
-                handleCashPayment(record);
+          {record?.status === "completed" ? null : (
+            <Button
+              onClick={() =>
+                record.paymentType === "online"
+                  ? handleOnlinePayment(record)
+                  : handleCashPayment(record)
               }
-            }}
-            style={{
-              color: "#27ae60",
-              backgroundColor: "#e6f4ea",
-              borderColor: "#27ae60",
-              fontWeight: "600",
-            }}
-          >
-            <LucideBanknote size={18} style={{ color: "#27ae60" }} />
-            Payment
-          </Button>
+              style={{
+                color: "#27ae60",
+                backgroundColor: "#e6f4ea",
+                borderColor: "#27ae60",
+                fontWeight: "600",
+              }}
+            >
+              Upload Report
+            </Button>
+          )}
         </div>
       ),
     },
@@ -197,35 +250,68 @@ const BookingList = () => {
   return (
     <div>
       <PageBreadcrumb pageTitle="Booking List" />
-      <div className="flex justify-between items-center gap-4 mb-4">
+
+      {/* 🔍 Filters */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
         <Input.Search
-          placeholder="Search packages"
+          placeholder="Search Order / Name / Address"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           allowClear
-          enterButton
+          style={{ width: 250 }}
+        />
+
+        <Select
+          placeholder="Status"
+          allowClear
+          value={statusFilter}
+          onChange={setStatusFilter}
+          style={{ width: 150 }}
+          options={[
+            { value: "pending", label: "Pending" },
+            { value: "completed", label: "Completed" },
+          ]}
+        />
+
+        <Select
+          placeholder="Payment Type"
+          allowClear
+          value={paymentTypeFilter}
+          onChange={setPaymentTypeFilter}
+          style={{ width: 160 }}
+          options={[
+            { value: "cash", label: "Cash" },
+            { value: "online", label: "Online" },
+          ]}
+        />
+
+        <RangePicker
+          onChange={(val) => setDateRange(val)}
+          style={{ width: 280 }}
+          allowEmpty={[true, true]}
         />
       </div>
 
+      {/* 📋 Table */}
       <Table
         columns={columns}
-        dataSource={labBooings}
+        dataSource={filteredData}
         rowKey="_id"
         loading={isLoading}
-        scroll={{ x: 1000 }}
         pagination={{
           current: page,
           pageSize,
-          total,
+          total: filteredData.length,
           showSizeChanger: true,
           onChange: (p, ps) => {
             setPage(p);
             setPageSize(ps);
           },
         }}
+        scroll={{ x: 1200 }}
       />
 
-      {/* 🧾 Cash Confirmation Popup */}
+      {/* Popups stay same as your original code */}
       {popupVisible && (
         <div style={overlayStyle as React.CSSProperties}>
           <div style={popupStyle as React.CSSProperties}>
@@ -251,14 +337,12 @@ const BookingList = () => {
         </div>
       )}
 
-      {/* 📁 Report Upload Popup (used in both cash and online) */}
       {uploadVisible && (
         <div style={overlayStyle as React.CSSProperties}>
           <div style={popupStyle as React.CSSProperties}>
             <p style={{ fontSize: "16px", marginBottom: "10px" }}>
               Upload report (PDF/Image) before completing payment
             </p>
-
             <Upload
               beforeUpload={() => false}
               onChange={handleFileChange}
@@ -295,7 +379,7 @@ const BookingList = () => {
   );
 };
 
-// Styles for custom popups
+// Popup styles
 const overlayStyle = {
   position: "fixed",
   top: 0,

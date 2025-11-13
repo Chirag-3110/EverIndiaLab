@@ -66,7 +66,7 @@ const PackageList = () => {
   // /packages/adeilst;
   const columns = [
     {
-      title: "Title",
+      title: "Packages",
       dataIndex: "title",
       key: "title",
       render: (text, record) => (

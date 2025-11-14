@@ -217,12 +217,12 @@ const PackageManagement = () => {
 
   const columns = [
     { title: "Title", dataIndex: "title", key: "title" },
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-      render: (v) => v || "--",
-    },
+    // {
+    //   title: "Description",
+    //   dataIndex: "description",
+    //   key: "description",
+    //   render: (v) => v || "--",
+    // },
     {
       title: "Tests Includes ",
       dataIndex: "includedTests",

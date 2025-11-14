@@ -154,12 +154,12 @@ const AssignTestForm = () => {
       dataIndex: ["categoryId", "name"],
       key: "category",
     },
-    {
-      title: "Description",
-      dataIndex: "description",
-      key: "description",
-      render: (text) => text || "-",
-    },
+    // {
+    //   title: "Description",
+    //   dataIndex: "description",
+    //   key: "description",
+    //   render: (text) => text || "-",
+    // },
     {
       title: "Recommended Gender",
       dataIndex: "recommendedGender",
@@ -204,8 +204,15 @@ const AssignTestForm = () => {
       <PageBreadcrumb pageTitle={"Assign Tests"} />
 
       {/* 🔙 Back button */}
-      <div className="mb-4">
+      <div className="mb-4 gap-4 flex justify-between">
         <Button onClick={() => navigate("/test-form")}>← Back to Test</Button>
+        <Button
+          type="primary"
+          danger
+          onClick={() => alert("Still to implementd")}
+        >
+          + Assign All Tests ({total})
+        </Button>
       </div>
 
       <Form form={form} layout="vertical">
@@ -256,7 +263,7 @@ const AssignTestForm = () => {
             htmlFor="selectAll"
             style={{ marginLeft: 8, userSelect: "none" }}
           >
-            Select All
+            Select All Given Below
           </label>
         </div>
 
@@ -271,7 +278,7 @@ const AssignTestForm = () => {
             showSizeChanger: true,
             pageSizeOptions: ["10", "25", "50", "100"],
           }}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1000 }}
           loading={isFetching}
           onChange={(pagination) => {
             setPage(pagination.current);

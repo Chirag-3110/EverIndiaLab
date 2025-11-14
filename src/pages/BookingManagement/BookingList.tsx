@@ -159,7 +159,12 @@ const BookingList = () => {
 
   // ✅ Table Columns
   const columns = [
-    { title: "Order ID", dataIndex: "orderId", key: "orderId" },
+    {
+      title: "Customer Name",
+      dataIndex: ["userId", "name"],
+      key: "customerName",
+      render: (_: any, record: any) => record.userId?.name || "-",
+    },
     {
       title: "Booking Date",
       dataIndex: "bookingDate",
@@ -172,20 +177,12 @@ const BookingList = () => {
         return `${dateStr}${slotStr}`;
       },
     },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status: string) => (
-        <Tag color={status === "pending" ? "orange" : "green"}>{status}</Tag>
-      ),
-    },
-    {
-      title: "Customer Name",
-      dataIndex: ["userId", "name"],
-      key: "customerName",
-      render: (_: any, record: any) => record.userId?.name || "-",
-    },
+
+    // {
+    //   title: "Lab Name",
+    //   dataIndex: ["assignedLabId", "name"],
+    //   key: "assignedLabId",
+    // },
     { title: "Payment Type", dataIndex: "paymentType", key: "paymentType" },
     {
       title: "Collection Type",
@@ -210,6 +207,14 @@ const BookingList = () => {
         ]
           .filter(Boolean)
           .join(", "),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status: string) => (
+        <Tag color={status === "pending" ? "orange" : "green"}>{status}</Tag>
+      ),
     },
     {
       title: "Created Date",

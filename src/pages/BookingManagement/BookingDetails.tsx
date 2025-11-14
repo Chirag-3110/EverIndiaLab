@@ -8,6 +8,7 @@ import {
   Spin,
   Input,
   Form,
+  Modal,
 } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -19,10 +20,15 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { useGetStaffsQuery } from "../../redux/api/staffApi";
 import { toast } from "react-toastify";
 import { formatDateTime } from "../../utils/utils";
+import { UploadCloud } from "lucide-react";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [selectedUploadItem, setSelectedUploadItem] = useState(null);
+  const [file, setFile] = useState(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState(null);
   const { data, isLoading } = useGetBookingDetailsQuery(id);
 
   const booking: any = data || [];
@@ -117,7 +123,23 @@ const BookingDetails = () => {
       key: "price",
       render: (price) => `₹${price}`,
     },
-    { title: "Quantity", dataIndex: "quantity", key: "quantity" },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_, record) => (
+        <div style={{ display: "flex", gap: "8px" }}>
+          <Button
+            type="primary"
+            onClick={() => {
+              setSelectedUploadItem(record);
+              setUploadModalOpen(true);
+            }}
+          >
+            <UploadCloud /> Report
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   // 🧮 Table Columns
@@ -156,6 +178,14 @@ const BookingDetails = () => {
       <Button onClick={() => navigate(-1)} style={{ marginBottom: 20 }}>
         ← Back to Bookings
       </Button>
+      <div className="flex justify-end mt-0">
+        <div className="bg-green-50 border border-green-300 rounded-md px-4 py-2 shadow-sm flex items-center gap-2">
+          <span className="text-green-700 font-semibold text-lg">Total:</span>
+          <span className="text-green-800 font-bold text-lg">
+            ₹{booking?.response?.data.amount.finalAmount || 0}
+          </span>
+        </div>
+      </div>
       <Tabs defaultActiveKey="1">
         <Tabs.TabPane tab="Booking Info" key="1">
           <Descriptions bordered column={1} size="small">
@@ -217,9 +247,6 @@ const BookingDetails = () => {
             rowKey="_id"
             pagination={false}
           />
-          <h4 className="mt-4">
-            Total: ₹{booking?.response?.data.amount.finalAmount}
-          </h4>
         </Tabs.TabPane>
 
         <Tabs.TabPane tab="Staff" key="4">
@@ -299,6 +326,72 @@ const BookingDetails = () => {
           </Descriptions>
         </Tabs.TabPane>
       </Tabs>
+
+      <Modal
+        open={uploadModalOpen}
+        onCancel={() => {
+          setUploadModalOpen(false);
+          setFile(null);
+          setFilePreviewUrl(null);
+        }}
+        title="Upload Report (Image or PDF)"
+        footer={null}
+        destroyOnClose
+      >
+        <div className="border p-2 rounded-md">
+          <input
+            type="file"
+            accept=".pdf,image/*"
+            onChange={(e) => {
+              const selectedFile = e.target.files[0];
+              setFile(selectedFile);
+              if (selectedFile && selectedFile.type.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onload = (ev) =>
+                  setFilePreviewUrl(ev.target.result as string);
+                reader.readAsDataURL(selectedFile);
+              } else {
+                setFilePreviewUrl(null);
+              }
+              console.log("Selected file:", selectedFile);
+            }}
+          />
+        </div>
+        {file && file.type.startsWith("image/") && filePreviewUrl && (
+          <img
+            src={filePreviewUrl}
+            alt="Preview"
+            style={{
+              width: "100%",
+              maxHeight: 300,
+              marginTop: 16,
+              borderRadius: 6,
+              objectFit: "contain",
+            }}
+          />
+        )}
+        {file && file.type === "application/pdf" && (
+          <div style={{ marginTop: 16 }}>
+            <p>
+              PDF: <strong>{file.name}</strong>
+            </p>
+          </div>
+        )}
+        <div className="mt-4 flex justify-end">
+          <Button
+            type="primary"
+            onClick={() => {
+              if (file) {
+                // You can later use file in an API call here
+                console.log("File to upload:", file);
+              }
+              setUploadModalOpen(false); // Close or add further logic
+            }}
+          >
+            Confirm
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };

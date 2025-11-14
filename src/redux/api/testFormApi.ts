@@ -28,15 +28,15 @@ export const testFormApi = createApi({
 
     // ✅ Get Asigned testForm  slug
     gettestForm: builder.query({
-      query: () => ({
-        url: `test-forms/list-all-testforms`,
+      query: ({ searchText = "", page, pageSize }) => ({
+        url: `test-forms/list-all-testforms?search=${searchText}&page=${page}&limit=${pageSize}`,
         method: "GET",
       }),
       providesTags: ["testForm"],
     }),
     // ✅ Get testForm Page by slug
     getAdminTestForm: builder.query({
-      query: ({ searchText = "", page = 1, pageSize = 10 }) => ({
+      query: ({ searchText = "", page, pageSize }) => ({
         url: `test-forms/list-lab-testforms?search=${searchText}&page=${page}&limit=${pageSize}`,
         method: "GET",
       }),
@@ -90,5 +90,5 @@ export const {
   useGettestFormDetailsQuery,
   useUpdatetestFormMutation,
   useDeletetestFormMutation,
-  useUnassignedTestformMutation
+  useUnassignedTestformMutation,
 } = testFormApi;

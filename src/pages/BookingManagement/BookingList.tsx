@@ -230,7 +230,7 @@ const BookingList = () => {
           <Button onClick={() => navigate(`/booking/details/${record._id}`)}>
             <EyeIcon size={18} />
           </Button>
-          {record?.status === "completed" ? null : (
+          {/* {record?.status === "completed" ? null : (
             <Button
               onClick={() =>
                 record.paymentType === "online"
@@ -246,7 +246,7 @@ const BookingList = () => {
             >
               Upload Report
             </Button>
-          )}
+          )} */}
         </div>
       ),
     },

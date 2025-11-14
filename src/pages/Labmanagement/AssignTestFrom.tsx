@@ -206,13 +206,7 @@ const AssignTestForm = () => {
       {/* 🔙 Back button */}
       <div className="mb-4 gap-4 flex justify-between">
         <Button onClick={() => navigate("/test-form")}>← Back to Test</Button>
-        <Button
-          type="primary"
-          danger
-          onClick={() => alert("Still to implementd")}
-        >
-          + Assign All Tests ({total})
-        </Button>
+        
       </div>
 
       <Form form={form} layout="vertical">

@@ -153,12 +153,18 @@ const TestFormManager = () => {
   return (
     <div>
       <div>
-        <PageBreadcrumb pageTitle="Test" />
-        <div style={{ textAlign: "right", marginBottom: 16 }}>
+        <PageBreadcrumb pageTitle="Tests" />
+        <div className="mb-4 gap-4 flex justify-end">
           <Button type="primary" onClick={() => navigate("/test-form/assign")}>
             + Assign Test
           </Button>
-         
+          <Button
+            type="primary"
+            danger
+            onClick={() => alert("Still to implementd")}
+          >
+            + Assign All Tests
+          </Button>
         </div>
         <Table
           columns={columns}

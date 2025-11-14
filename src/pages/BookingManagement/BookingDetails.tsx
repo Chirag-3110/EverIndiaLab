@@ -189,8 +189,23 @@ const BookingDetails = () => {
       <Tabs defaultActiveKey="1">
         <Tabs.TabPane tab="Booking Info" key="1">
           <Descriptions bordered column={1} size="small">
+            <Descriptions.Item label="User Name">
+              {booking.response?.data.userId.name || "--"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Gender">
+              {booking.response?.data.userId.gender || "--"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Age">
+              {booking.response?.data.userId.dob || "--"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Contact Number">
+              {booking.response?.data.userId.contactNumber || "--"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Email">
+              {booking.response?.data.userId.email || "--"}
+            </Descriptions.Item>
             <Descriptions.Item label="Order ID">
-              {booking?.response?.data.orderId}
+              {booking?.response?.data.orderId || "--"}
             </Descriptions.Item>
             <Descriptions.Item label="Booking Date">
               {formatDateTime(booking?.response?.data.bookingDate)}

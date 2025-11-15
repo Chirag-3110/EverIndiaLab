@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
 import { Badge, BellIcon, User, Warehouse } from "lucide-react";
 import { useGetnotificationQuery } from "../redux/api/notificationApi";
+import NotificationsModal from "../components/NotificationsModal/NotificationsModal";
 
 const AppHeader: React.FC = () => {
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
   const navigate = useNavigate();
+    const [open, setOpen] = useState(false);
 
   const { data, isLoading } = useGetnotificationQuery({});
   const notifications = data?.response?.notifications || [];
@@ -52,7 +54,7 @@ const AppHeader: React.FC = () => {
           <div style={{ position: "relative", display: "inline-block" }}>
             <div
               className="border px-1.5 py-1.5 rounded-md cursor-pointer"
-              onClick={() => navigate("/notification")}
+              onClick={() => setOpen(true)}
               style={{ position: "relative", fontSize: 20 }}
             >
               <BellIcon style={{ fontSize: 20 }} />
@@ -92,6 +94,7 @@ const AppHeader: React.FC = () => {
           </button>
         </div>
       </div>
+      <NotificationsModal open={open} onClose={() => setOpen(false)} />
     </header>
   );
 };

@@ -76,15 +76,15 @@ const BookingList = () => {
   };
 
   // ✅ Handle Payment Completion
-  const handlePaymentComplete = async (record: any) => {
-    if (!file)
-      return toast.warning("Please upload a report before submitting.");
+  const handlePaymentComplete = async () => {
     const formData = new FormData();
     formData.append("image", file);
-    formData.append("bookingId", record._id);
+    formData.append("bookingId", selectedRecord._id);
 
     try {
-      await markAsCompleteBooking({ fd: formData, id: record._id }).unwrap();
+      await markAsCompleteBooking({
+        id: selectedRecord._id,
+      }).unwrap();
       toast.success("Payment marked as complete!");
       closeAllPopups();
     } catch (err) {
@@ -100,8 +100,8 @@ const BookingList = () => {
   };
 
   const handleCashConfirm = () => {
+    handlePaymentComplete();
     setPopupVisible(false);
-    setUploadVisible(true);
   };
 
   const handleOnlinePayment = (record: any) => {
@@ -225,30 +225,47 @@ const BookingList = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_: any, record: any) => (
-        <div style={{ display: "flex", gap: "8px" }}>
-          <Button onClick={() => navigate(`/booking/details/${record._id}`)}>
-            <EyeIcon size={18} />
-          </Button>
-          {/* {record?.status === "completed" ? null : (
-            <Button
-              onClick={() =>
-                record.paymentType === "online"
-                  ? handleOnlinePayment(record)
-                  : handleCashPayment(record)
-              }
-              style={{
-                color: "#27ae60",
-                backgroundColor: "#e6f4ea",
-                borderColor: "#27ae60",
-                fontWeight: "600",
-              }}
-            >
-              Upload Report
+      render: (_: any, record: any) => {
+        const allReportsUploaded = record.items?.every(
+          (item: any) => item.reportFile && item.reportFile.trim() !== ""
+        );
+
+        return (
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button onClick={() => navigate(`/booking/details/${record._id}`)}>
+              <EyeIcon size={18} />
             </Button>
-          )} */}
-        </div>
-      ),
+            {record?.status === "temporary_completed" &&
+            record?.paymentType === "cash" &&
+            allReportsUploaded ? (
+              <Button
+                onClick={() => handleCashPayment(record)}
+                style={{
+                  color: "#27ae60",
+                  backgroundColor: "#e6f4ea",
+                  borderColor: "#27ae60",
+                  fontWeight: "600",
+                }}
+              >
+                Mark As Completed
+              </Button>
+            ) : null}
+            {record?.paymentType === "online" && allReportsUploaded ? (
+              <Button
+                onClick={() => handleOnlinePayment(record)}
+                style={{
+                  color: "#27ae60",
+                  backgroundColor: "#e6f4ea",
+                  borderColor: "#27ae60",
+                  fontWeight: "600",
+                }}
+              >
+                Mark As Completed
+              </Button>
+            ) : null}
+          </div>
+        );
+      },
     },
   ];
 
@@ -313,16 +330,19 @@ const BookingList = () => {
             setPageSize(ps);
           },
         }}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1000 }}
       />
 
       {/* Popups stay same as your original code */}
       {popupVisible && (
         <div style={overlayStyle as React.CSSProperties}>
           <div style={popupStyle as React.CSSProperties}>
-            <p>
+            <p className="text-sm">
               Are you accepting the payment in <b>cash</b> from the assigned
               staff member?
+            </p>
+            <p className="text-sm">
+              Have you uploaded all the reports to the Tests/Packages?
             </p>
             <div
               style={{
@@ -345,20 +365,12 @@ const BookingList = () => {
       {uploadVisible && (
         <div style={overlayStyle as React.CSSProperties}>
           <div style={popupStyle as React.CSSProperties}>
-            <p style={{ fontSize: "16px", marginBottom: "10px" }}>
-              Upload report (PDF/Image) before completing payment
+            <p className="text-sm">
+              Have you uploaded all the reports to the Tests/Packages?
             </p>
-            <Upload
-              beforeUpload={() => false}
-              onChange={handleFileChange}
-              accept=".pdf,image/*"
-              maxCount={1}
-              fileList={file ? [{ uid: "1", name: file.name }] : []}
-              onRemove={() => setFile(null)}
-            >
-              <Button icon={<UploadOutlined />}>Upload Report</Button>
-            </Upload>
-
+            <p className="text-sm">
+              Are you accepting the payment directly from the customer?
+            </p>
             <div
               style={{
                 display: "flex",
@@ -368,10 +380,10 @@ const BookingList = () => {
             >
               <button
                 style={yesButtonStyle}
-                onClick={() => handlePaymentComplete(selectedRecord)}
+                onClick={() => handlePaymentComplete()}
                 disabled={isSubmiting}
               >
-                {isSubmiting ? "Wait.." : " Submit"}
+                {isSubmiting ? "Wait.." : "Mark As Complete"}
               </button>
               <button style={noButtonStyle} onClick={closeAllPopups}>
                 Cancel

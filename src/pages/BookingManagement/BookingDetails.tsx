@@ -15,6 +15,7 @@ import {
   useAssignStaffBookingMutation,
   useGetBookingDetailsQuery,
   useGetBookingQuery,
+  useUploadReportToBookingMutation,
 } from "../../redux/api/bookingApi";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { useGetStaffsQuery } from "../../redux/api/staffApi";
@@ -41,6 +42,8 @@ const BookingDetails = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
+const [uploadReportToBooking, { isLoading: isUploading }] =
+  useUploadReportToBookingMutation();
   const [assignStaffBooking] = useAssignStaffBookingMutation();
   const { data: StaffList, isFetching } = useGetStaffsQuery({
     searchText,
@@ -127,16 +130,29 @@ const BookingDetails = () => {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
-        <div style={{ display: "flex", gap: "8px" }}>
-          <Button
-            type="primary"
-            onClick={() => {
-              setSelectedUploadItem(record);
-              setUploadModalOpen(true);
-            }}
-          >
-            <UploadCloud /> Report
-          </Button>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          {record.reportFile == null ? (
+            <Button
+              type="primary"
+              onClick={() => {
+                setSelectedUploadItem(record);
+                setUploadModalOpen(true);
+              }}
+            >
+              <UploadCloud /> Report
+            </Button>
+          ) : (
+            <>
+              <a
+                href={record.reportFile}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "underline", color: "#1890ff" }}
+              >
+                View Report
+              </a>
+            </>
+          )}
         </div>
       ),
     },
@@ -395,10 +411,25 @@ const BookingDetails = () => {
         <div className="mt-4 flex justify-end">
           <Button
             type="primary"
-            onClick={() => {
+            onClick={async() => {
               if (file) {
                 // You can later use file in an API call here
                 console.log("File to upload:", file);
+                const formData = new FormData();
+                formData.append("image", file);
+                formData.append("itemId", selectedUploadItem?._id);
+                formData.append("bookingId", id);
+                await uploadReportToBooking({
+                  fd: formData,
+                  id: id,
+                })
+                  .unwrap()
+                  .then(() => {
+                    toast.success("Report Uploaded Successfully");
+                  })
+                  .catch(() => {
+                    toast.error("Failed to upload the report.");
+                  });
               }
               setUploadModalOpen(false); // Close or add further logic
             }}

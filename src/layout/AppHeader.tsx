@@ -1,11 +1,17 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
-import { User, Warehouse } from "lucide-react";
+import { Badge, BellIcon, User, Warehouse } from "lucide-react";
+import { useGetnotificationQuery } from "../redux/api/notificationApi";
 
 const AppHeader: React.FC = () => {
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
   const navigate = useNavigate();
+
+  const { data, isLoading } = useGetnotificationQuery({});
+  const notifications = data?.response?.notifications || [];
+  const unseenCount =
+    notifications?.filter((n) => n.status === "unseen").length || 0;
 
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
@@ -43,6 +49,40 @@ const AppHeader: React.FC = () => {
 
         {/* Profile Icon */}
         <div className="flex items-center gap-4">
+          <div style={{ position: "relative", display: "inline-block" }}>
+            <div
+              className="border px-1.5 py-1.5 rounded-md cursor-pointer"
+              onClick={() => navigate("/notification")}
+              style={{ position: "relative", fontSize: 20 }}
+            >
+              <BellIcon style={{ fontSize: 20 }} />
+
+              {/* Custom red badge */}
+              {unseenCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 2,
+                    right: 2,
+                    backgroundColor: "red",
+                    borderRadius: "50%",
+                    width: 16,
+                    height: 16,
+                    color: "white",
+                    fontSize: 10,
+                    fontWeight: "bold",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    pointerEvents: "none",
+                    userSelect: "none",
+                  }}
+                >
+                  {unseenCount}
+                </span>
+              )}
+            </div>
+          </div>
           <button
             onClick={() => navigate("/profile-management")}
             className="flex items-center justify-center w-10 h-10 text-white bg-[#07868D] rounded-full hover:opacity-90 transition"

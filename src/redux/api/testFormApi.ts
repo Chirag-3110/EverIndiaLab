@@ -61,6 +61,15 @@ export const testFormApi = createApi({
       }),
       invalidatesTags: ["testForm"],
     }),
+    // ✅ Update testForm Page by ID
+    assignUnassignAlltestForm: builder.mutation({
+      query: (body) => ({
+        url: `test-forms/assign-unassign-lab-all-tests`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["testForm"],
+    }),
 
     // ✅ Delete testForm Page by ID
     deletetestForm: builder.mutation({
@@ -91,4 +100,5 @@ export const {
   useUpdatetestFormMutation,
   useDeletetestFormMutation,
   useUnassignedTestformMutation,
+  useAssignUnassignAlltestFormMutation
 } = testFormApi;

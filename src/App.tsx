@@ -32,7 +32,6 @@ import PackageAssign from "./pages/PackageManagement/PackageAssign";
 import AssignTestForm from "./pages/Labmanagement/AssignTestFrom";
 import BookingList from "./pages/BookingManagement/BookingList";
 import BookingDetails from "./pages/BookingManagement/BookingDetails";
-import Notifications from "./pages/Notifications/Notifications";
 
 export default function App() {
   return (
@@ -101,7 +100,6 @@ export default function App() {
 
           {/* Others Page */}
           <Route path="/profile" element={<UserProfiles />} />
-          <Route path="/notification" element={<Notifications />} />
           <Route path="/blank" element={<Blank />} />
 
           {/* Forms */}

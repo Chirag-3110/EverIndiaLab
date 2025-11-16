@@ -25,6 +25,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import {
+  useAssignUnassignAlltestFormMutation,
   useGettestFormQuery,
   useUnassignedTestformMutation,
 } from "../../redux/api/testFormApi";
@@ -39,6 +40,13 @@ const TestFormManager = () => {
   const [searchText, setSearchText] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [isAssign, setIsAssign] = useState(() => {
+    const saved = localStorage.getItem("isAssign");
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+  useEffect(() => {
+    localStorage.setItem("isAssign", JSON.stringify(isAssign));
+  }, [isAssign]);
 
   const { data, error, isLoading, refetch } = useGettestFormQuery({
     searchText,
@@ -46,6 +54,8 @@ const TestFormManager = () => {
     pageSize,
   });
   const [unassignedTestform] = useUnassignedTestformMutation();
+  const [assignUnassignAlltestForm, { isLoading: isAssigning }] =
+    useAssignUnassignAlltestFormMutation();
 
   const [testForms, setTestForms] = useState([]);
   const total = data?.response?.pagination?.totalCount ?? 0;
@@ -66,7 +76,32 @@ const TestFormManager = () => {
       toast.success("Test form removed");
       refetch();
     } catch {
-      message.error("Error removing test form");
+      toast.error("Error removing test form");
+    }
+  };
+  // Assign handler
+  const handleAssignAllTestForm = async () => {
+    try {
+      const payload = { selectType: "assign", labId: user?._id };
+      await assignUnassignAlltestForm(payload).unwrap();
+      setIsAssign(true);
+      toast.success("All Tests Assigned Successfully.");
+      refetch();
+    } catch {
+      toast.error("Error Assigning tests");
+    }
+  };
+
+  // Unassign handler
+  const handleUnassignAllTestForm = async () => {
+    try {
+      const payload = { selectType: "unassign", labId: user?._id };
+      await assignUnassignAlltestForm(payload).unwrap();
+      setIsAssign(false);
+      toast.success("All Tests Unassigned Successfully");
+      refetch();
+    } catch {
+      toast.error("Error Unassigning tests");
     }
   };
 
@@ -161,9 +196,14 @@ const TestFormManager = () => {
           <Button
             type="primary"
             danger
-            onClick={() => alert("Still to implementd")}
+            onClick={() => {
+              !isAssign
+                ? handleAssignAllTestForm()
+                : handleUnassignAllTestForm();
+            }}
+            loading={isAssigning}
           >
-            + Assign All Tests
+            {!isAssign ? " + Assign All Tests" : "UnAssign All Tests"}
           </Button>
         </div>
         <Table

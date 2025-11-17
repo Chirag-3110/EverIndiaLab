@@ -160,6 +160,11 @@ const BookingList = () => {
   // ✅ Table Columns
   const columns = [
     {
+      title: "OrderId",
+      dataIndex: "orderId",
+      key: "orderId",
+    },
+    {
       title: "Customer Name",
       dataIndex: ["userId", "name"],
       key: "customerName",
@@ -235,7 +240,7 @@ const BookingList = () => {
             <Button onClick={() => navigate(`/booking/details/${record._id}`)}>
               <EyeIcon size={18} />
             </Button>
-            {record?.status === "temporary_completed" &&
+            {record?.status !== "completed" &&
             record?.paymentType === "cash" &&
             allReportsUploaded ? (
               <Button
@@ -250,6 +255,7 @@ const BookingList = () => {
                 Mark As Completed
               </Button>
             ) : null}
+
             {record?.paymentType === "online" && allReportsUploaded ? (
               <Button
                 onClick={() => handleOnlinePayment(record)}
@@ -292,6 +298,17 @@ const BookingList = () => {
           options={[
             { value: "pending", label: "Pending" },
             { value: "completed", label: "Completed" },
+            { value: "in_progress", label: "In Progress" },
+            { value: "in_route", label: "In Route" },
+            { value: "confirmed", label: "Confirmed" },
+            { value: "assigned", label: "Assigned" },
+            { value: "started", label: "Started" },
+            { value: "test_collected", label: "Test Collected" },
+            { value: "cancelled", label: "Cancelled" },
+            {
+              value: "temporary_completed",
+              label: "Temporary Completed",
+            },
           ]}
         />
 

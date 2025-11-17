@@ -9,6 +9,7 @@ import {
   Input,
   Form,
   Modal,
+  Select,
 } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -37,13 +38,14 @@ const BookingDetails = () => {
   const [selectedTests, setSelectedTests] = useState([]);
   const [includedTestsDetails, setIncludedTestsDetails] = useState([]);
 
+  const [selectedStaff, setSelectedStaff] = useState(null);
   const [searchText, setSearchText] = useState("");
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
 
-const [uploadReportToBooking, { isLoading: isUploading }] =
-  useUploadReportToBookingMutation();
+  const [uploadReportToBooking, { isLoading: isUploading }] =
+    useUploadReportToBookingMutation();
   const [assignStaffBooking] = useAssignStaffBookingMutation();
   const { data: StaffList, isFetching } = useGetStaffsQuery({
     searchText,
@@ -77,10 +79,9 @@ const [uploadReportToBooking, { isLoading: isUploading }] =
       const values = await form.validateFields();
 
       const payload = {
-        staffId: selectedTests.map((t) => (typeof t === "object" ? t._id : t)),
+        staffId: selectedStaff,
       };
 
-      console.log(payload);
       await assignStaffBooking({ id: id, body: payload }).unwrap();
       toast.success("Staff Assigned successfully");
       navigate("/booking-list");
@@ -245,6 +246,31 @@ const [uploadReportToBooking, { isLoading: isUploading }] =
               {booking?.response?.data.paymentType}
             </Descriptions.Item>
             <Descriptions.Item label="Address">{`${booking?.response?.data.userAddress.addressLine1}, ${booking?.response?.data.userAddress.city}, ${booking?.response?.data.userAddress.state}`}</Descriptions.Item>
+
+            <Descriptions.Item label="Cost Breakdown">
+              <div>
+                <ol className="flex justify-between">
+                  <label htmlFor="">Total Amount:</label>
+                  {booking?.response?.data.amount.total}
+                </ol>
+                <ol className="flex justify-between">
+                  <label htmlFor="">Discount:</label>
+                  {booking?.response?.data.amount.discount}
+                </ol>
+                <ol className="flex justify-between">
+                  <label htmlFor="">Ever Cash:</label>
+                  {booking?.response?.data.amount.everCash}
+                </ol>
+                <ol className="flex justify-between">
+                  <label htmlFor="">Coupon Discount:</label>
+                  {booking?.response?.data.amount.couponAppliedAmount}
+                </ol>
+                <ol className="flex justify-between">
+                  <label htmlFor="">Final Amount:</label>
+                  {booking?.response?.data.amount.finalAmount}
+                </ol>
+              </div>
+            </Descriptions.Item>
           </Descriptions>
         </Tabs.TabPane>
 
@@ -281,72 +307,6 @@ const [uploadReportToBooking, { isLoading: isUploading }] =
         </Tabs.TabPane>
 
         <Tabs.TabPane tab="Staff" key="4">
-          {!booking?.response?.data.assignedStaffId && (
-            <div>
-              <Form form={form} layout="vertical">
-                {/* Slected Tests */}
-                <h3 className="font-semibold mb-2">Selected Tests</h3>
-
-                {includedTestsDetails.length > 0 ? (
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    {includedTestsDetails.map((test) => (
-                      <div
-                        key={test._id}
-                        className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full border"
-                      >
-                        <span>{test.name}</span>
-                        <Button
-                          size="small"
-                          danger
-                          onClick={() => handleRemoveSelectedTest(test._id)}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 mb-4">No tests selected yet</p>
-                )}
-
-                <h3 className="font-semibold mb-2">Select Tests</h3>
-
-                <Input.Search
-                  placeholder="Search tests..."
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  allowClear
-                  className="mb-3"
-                />
-
-                <Table
-                  columns={columns}
-                  dataSource={staffList}
-                  rowKey="_id"
-                  pagination={{
-                    current: page,
-                    pageSize: pageSize,
-                    total: total, // USE API total here!
-                    showSizeChanger: true,
-                    pageSizeOptions: ["10", "25", "50", "100"],
-                  }}
-                  scroll={{ x: 1200 }}
-                  loading={isFetching}
-                  onChange={(pagination) => {
-                    setPage(pagination.current);
-                    setPageSize(pagination.pageSize);
-                  }}
-                />
-
-                <div className="mt-6 flex justify-end gap-3">
-                  <Button onClick={() => navigate("/packages")}>Cancel</Button>
-                  <Button type="primary" onClick={handleSave}>
-                    {"Assign Staff"}
-                  </Button>
-                </div>
-              </Form>
-            </div>
-          )}
           <Descriptions bordered column={1} size="small">
             <Descriptions.Item label="Assigned Staff">
               {booking?.response?.data.assignedStaffId?.name || "Not assigned"}
@@ -355,6 +315,47 @@ const [uploadReportToBooking, { isLoading: isUploading }] =
               {booking?.response?.data.assignedStaffId?.phoneNumber || "-"}
             </Descriptions.Item>
           </Descriptions>
+          {!booking?.response?.data?.assignedStaffId && (
+            <div className="mt-4">
+              <Form form={form} layout="vertical" onFinish={handleSave}>
+                <h3 className="font-semibold mb-2">Select Staff</h3>
+
+                <Form.Item
+                  name="assignedStaffId"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please select a staff member!",
+                    },
+                  ]}
+                >
+                  <Select
+                    placeholder="Select a staff member"
+                    showSearch
+                    optionFilterProp="children"
+                    filterOption={(input, option) =>
+                      typeof option?.children === "string"
+                    }
+                    allowClear
+                    onChange={(value) => setSelectedStaff(value)}
+                  >
+                    {staffList.map((staff) => (
+                      <Select.Option key={staff._id} value={staff._id}>
+                        {staff.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+
+                <div className="mt-6 flex justify-end gap-3">
+                  {/* <Button onClick={() => navigate("/packages")}>Cancel</Button> */}
+                  <Button type="primary" htmlType="submit">
+                    Assign Staff
+                  </Button>
+                </div>
+              </Form>
+            </div>
+          )}
         </Tabs.TabPane>
       </Tabs>
 
@@ -369,7 +370,7 @@ const [uploadReportToBooking, { isLoading: isUploading }] =
         footer={null}
         destroyOnClose
       >
-        <div className="border p-2 rounded-md">
+        <div className="rounded-md">
           <input
             type="file"
             accept=".pdf,image/*"
@@ -386,6 +387,7 @@ const [uploadReportToBooking, { isLoading: isUploading }] =
               }
               console.log("Selected file:", selectedFile);
             }}
+            className="border w-full p-2 rounded-md"
           />
         </div>
         {file && file.type.startsWith("image/") && filePreviewUrl && (
@@ -411,9 +413,8 @@ const [uploadReportToBooking, { isLoading: isUploading }] =
         <div className="mt-4 flex justify-end">
           <Button
             type="primary"
-            onClick={async() => {
+            onClick={async () => {
               if (file) {
-                // You can later use file in an API call here
                 console.log("File to upload:", file);
                 const formData = new FormData();
                 formData.append("image", file);
@@ -431,7 +432,7 @@ const [uploadReportToBooking, { isLoading: isUploading }] =
                     toast.error("Failed to upload the report.");
                   });
               }
-              setUploadModalOpen(false); // Close or add further logic
+              setUploadModalOpen(false);
             }}
           >
             Confirm

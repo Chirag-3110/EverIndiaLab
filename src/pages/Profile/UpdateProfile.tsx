@@ -1,98 +1,123 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Card, Form, Input, Button } from "antd";
 import { toast } from "react-toastify";
-import { useAuth } from "../../context/AuthContext";
 import { useUpdateUserProfileMutation } from "../../redux/api/profileApi";
 import { useGetlabDetailsQuery } from "../../redux/api/categoryApi";
+import { useJsApiLoader, Libraries } from "@react-google-maps/api";
 
-const UpdateProfile = () => {
-  const { updateUser } = useAuth();
+const libs: Libraries = ["places"];
 
+export default function UpdateProfile() {
+  const [form] = Form.useForm();
   const [updateUserProfile, { isLoading: updating }] =
     useUpdateUserProfileMutation();
 
-  const { data: labDetail, isLoading: labLoading } = useGetlabDetailsQuery({});
+  const { data: labDetail } = useGetlabDetailsQuery({});
 
-  const [form] = Form.useForm();
+  // 👉 Must be HTML input element for Google Autocomplete
+  const addressRef = useRef<HTMLInputElement | null>(null);
 
-  // Set form fields from lab profile data whenever labDetail changes
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_MAP_KEY,
+    libraries: libs,
+  });
+
+  // Prefill form
   useEffect(() => {
     if (labDetail?.response?.lab) {
       const lab = labDetail.response.lab;
+
       form.setFieldsValue({
-        name: lab.name || "",
-        email: lab.email || "",
-        phoneNumber: lab.contactNumber || "",
-        address: lab.address || "",
+        name: lab.name,
+        email: lab.email,
+        phoneNumber: lab.contactNumber,
+        address: lab.address,
       });
     }
-  }, [labDetail, form]);
+  }, [labDetail]);
 
-  // Profile update handler sends only these fields (adjust API as needed)
-  const handleProfileUpdate = async (values: any) => {
-    try {
-      const formData = new FormData();
-      formData.append("name", values.name);
-      formData.append("email", values.email);
-      formData.append("contactNumber", values.phoneNumber);
-      formData.append("address", values.address);
-      // If you're uploading an image:
-      // if (values.categoryImage?.file) {
-      //   formData.append('categoryImage', values.categoryImage.file);
-      // }
+  // Google Autocomplete Setup
+  useEffect(() => {
+    if (isLoaded && addressRef.current) {
+      const autocomplete = new google.maps.places.Autocomplete(
+        addressRef.current,
+        {
+          fields: ["formatted_address", "geometry"],
+        }
+      );
 
-      const response: any = await updateUserProfile({
-        id: labDetail?.response?.lab._id,
-        formData,
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+
+        if (place?.formatted_address) {
+          form.setFieldsValue({
+            address: place.formatted_address,
+          });
+        }
       });
-      toast.success("Profile updated successfully!");
-    } catch (error) {
-      toast.error("Failed to update profile.");
+    }
+  }, [isLoaded]);
+
+  const handleSubmit = async (values: any) => {
+    try {
+      const fd = new FormData();
+      fd.append("name", values.name);
+      fd.append("email", values.email);
+      fd.append("contactNumber", values.phoneNumber);
+      fd.append("address", values.address);
+
+      await updateUserProfile({
+        id: labDetail?.response?.lab._id,
+        formData: fd,
+      }).unwrap();
+
+      toast.success("Profile updated!");
+    } catch {
+      toast.error("Failed to update.");
     }
   };
 
   return (
     <div style={{ maxWidth: 500, margin: "0 auto", padding: 20 }}>
-      <Card
-        title="Update Lab Details"
-        bordered={false}
-        style={{ borderRadius: 12, boxShadow: "0 2px 12px rgba(0,0,0,0.1)" }}
-      >
-        <Form form={form} layout="vertical" onFinish={handleProfileUpdate}>
-          <Form.Item
-            name="name"
-            label="Lab Name"
-            rules={[{ required: true, message: "Please enter lab name" }]}
-          >
+      <Card title="Update Lab Details" style={{ borderRadius: 12 }}>
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
+          <Form.Item name="name" label="Lab Name" rules={[{ required: true }]}>
             <Input placeholder="Enter lab name" />
           </Form.Item>
+
           <Form.Item
             name="email"
             label="Email Address"
-            rules={[
-              { required: true, message: "Please enter email" },
-              { type: "email", message: "Enter a valid email" },
-            ]}
+            rules={[{ required: true }, { type: "email" }]}
           >
             <Input placeholder="Enter email" />
           </Form.Item>
+
           <Form.Item name="phoneNumber" label="Contact Number">
             <Input placeholder="Enter contact number" />
           </Form.Item>
+
+          {/* PERFECT GOOGLE AUTOCOMPLETE */}
           <Form.Item name="address" label="Address">
-            <Input placeholder="Enter address" />
+            <Input
+              placeholder="Search address"
+              defaultValue={labDetail?.response?.lab?.address}
+              ref={(el) => {
+                // el = Antd Input component instance
+                // el?.input = the REAL HTML input element
+                addressRef.current = el?.input || null;
+              }}
+              onChange={(e) => {
+                form.setFieldsValue({ address: e.target.value });
+              }}
+            />
           </Form.Item>
+
           <Form.Item>
             <Button
-              type="primary"
               htmlType="submit"
-              style={{
-                backgroundColor: "#07868D",
-                borderColor: "#07868D",
-                color: "white",
-                borderRadius: 8,
-                width: "100%",
-              }}
+              type="primary"
+              style={{ width: "100%", backgroundColor: "#1F9298" }}
               disabled={updating}
             >
               {updating ? "Updating..." : "Update Details"}
@@ -102,6 +127,4 @@ const UpdateProfile = () => {
       </Card>
     </div>
   );
-};
-
-export default UpdateProfile;
+}

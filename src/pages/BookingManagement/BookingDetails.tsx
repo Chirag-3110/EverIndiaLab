@@ -46,7 +46,7 @@ const BookingDetails = () => {
 
   const [uploadReportToBooking, { isLoading: isUploading }] =
     useUploadReportToBookingMutation();
-  const [assignStaffBooking] = useAssignStaffBookingMutation();
+  const [assignStaffBooking, {isLoading:isAssigning}] = useAssignStaffBookingMutation();
   const { data: StaffList, isFetching } = useGetStaffsQuery({
     searchText,
     page,
@@ -54,6 +54,7 @@ const BookingDetails = () => {
   });
 
   const staffList = StaffList?.response?.users ?? [];
+  console.log(staffList)
 
   const total = StaffList?.response?.users?.length ?? 0;
 
@@ -119,7 +120,12 @@ const BookingDetails = () => {
     );
 
   const itemsColumns = [
-    { title: "Item Type", dataIndex: "itemType", key: "itemType" },
+    {
+      title: "Item Type",
+      dataIndex: "itemType",
+      key: "itemType",
+      render: (value) => (value === "TestForm" ? "Test" : value),
+    },
     { title: "Name", dataIndex: "name", key: "name" },
     {
       title: "Price",
@@ -349,7 +355,11 @@ const BookingDetails = () => {
 
                 <div className="mt-6 flex justify-end gap-3">
                   {/* <Button onClick={() => navigate("/packages")}>Cancel</Button> */}
-                  <Button type="primary" htmlType="submit">
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={isAssigning}
+                  >
                     Assign Staff
                   </Button>
                 </div>
@@ -413,6 +423,7 @@ const BookingDetails = () => {
         <div className="mt-4 flex justify-end">
           <Button
             type="primary"
+            loading={isUploading}
             onClick={async () => {
               if (file) {
                 console.log("File to upload:", file);

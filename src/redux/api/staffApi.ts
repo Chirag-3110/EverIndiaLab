@@ -57,7 +57,7 @@ export const StaffApi = createApi({
 
     // Get All Assigned Staffs
     getStaffs: builder.query({
-      query: (searchText) =>
+      query: ({searchText, page, pageSize}) =>
         searchText && searchText.trim() !== ""
           ? `lab/list-lab-users?search=${searchText}`
           : `lab/list-lab-users`,

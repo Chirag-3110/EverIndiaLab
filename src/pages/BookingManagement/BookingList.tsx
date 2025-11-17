@@ -160,9 +160,9 @@ const BookingList = () => {
   // ✅ Table Columns
   const columns = [
     {
-      title: "OrderId",
-      dataIndex: "orderId",
-      key: "orderId",
+      title: "Booking ID",
+      dataIndex: "bookingId",
+      key: "bookingId",
     },
     {
       title: "Customer Name",
@@ -251,6 +251,7 @@ const BookingList = () => {
                   borderColor: "#27ae60",
                   fontWeight: "600",
                 }}
+                loading={isSubmiting}
               >
                 Mark As Completed
               </Button>
@@ -265,6 +266,7 @@ const BookingList = () => {
                   borderColor: "#27ae60",
                   fontWeight: "600",
                 }}
+                loading={isSubmiting}
               >
                 Mark As Completed
               </Button>

@@ -373,7 +373,7 @@ const BookingDetails = () => {
             rowKey="_id"
             pagination={false}
           />
-          <div>
+          <div className="mt-8 flex justify-end">
             {booking?.response?.data?.status !== "completed" &&
             booking?.response?.data?.paymentType === "cash" &&
             allReportsUploaded ? (

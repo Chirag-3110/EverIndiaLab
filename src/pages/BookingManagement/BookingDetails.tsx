@@ -408,58 +408,66 @@ const BookingDetails = () => {
           </div>
         </Tabs.TabPane>
 
-        <Tabs.TabPane tab="Staff" key="4">
-          <Descriptions bordered column={1} size="small">
-            <Descriptions.Item label="Assigned Staff">
-              {booking?.response?.data.assignedStaffId?.name || "Not assigned"}
-            </Descriptions.Item>
-            <Descriptions.Item label="Staff Phone">
-              {booking?.response?.data.assignedStaffId?.phoneNumber || "-"}
-            </Descriptions.Item>
-          </Descriptions>
+        {booking?.response?.data.amount.collectiontype ===
+          "Home Collection" && (
+          <Tabs.TabPane tab="Staff" key="4">
+            <Descriptions bordered column={1} size="small">
+              <Descriptions.Item label="Assigned Staff">
+                {booking?.response?.data.assignedStaffId?.name ||
+                  "Not assigned"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Staff Phone">
+                {booking?.response?.data.assignedStaffId?.phoneNumber || "-"}
+              </Descriptions.Item>
+            </Descriptions>
 
-          <div className="mt-4">
-            <Form form={form} layout="vertical" onFinish={handleSave}>
-              <h3 className="font-semibold mb-2">Select Staff</h3>
+            <div className="mt-4">
+              <Form form={form} layout="vertical" onFinish={handleSave}>
+                <h3 className="font-semibold mb-2">Select Staff</h3>
 
-              <Form.Item
-                name="assignedStaffId"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please select a staff member!",
-                  },
-                ]}
-              >
-                <Select
-                  placeholder="Select a staff member"
-                  showSearch
-                  optionFilterProp="children"
-                  allowClear
-                  filterOption={(input, option) => {
-                    const label = String(option?.children || "");
-                    return label.toLowerCase().includes(input.toLowerCase());
-                  }}
-                  onChange={(value) => setSelectedStaff(value)}
+                <Form.Item
+                  name="assignedStaffId"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please select a staff member!",
+                    },
+                  ]}
                 >
-                  {staffList.map((staff) => (
-                    <Select.Option key={staff._id} value={staff._id}>
-                      {staff.name}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
+                  <Select
+                    placeholder="Select a staff member"
+                    showSearch
+                    optionFilterProp="children"
+                    allowClear
+                    filterOption={(input, option) => {
+                      const label = String(option?.children || "");
+                      return label.toLowerCase().includes(input.toLowerCase());
+                    }}
+                    onChange={(value) => setSelectedStaff(value)}
+                  >
+                    {staffList.map((staff) => (
+                      <Select.Option key={staff._id} value={staff._id}>
+                        {staff.name}
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </Form.Item>
 
-              <div className="mt-6 flex justify-end gap-3">
-                <Button type="primary" htmlType="submit" loading={isAssigning}>
-                  {!booking?.response?.data?.assignedStaffId
-                    ? " Assign Staff"
-                    : "Edit Staff"}
-                </Button>
-              </div>
-            </Form>
-          </div>
-        </Tabs.TabPane>
+                <div className="mt-6 flex justify-end gap-3">
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={isAssigning}
+                  >
+                    {!booking?.response?.data?.assignedStaffId
+                      ? " Assign Staff"
+                      : "Edit Staff"}
+                  </Button>
+                </div>
+              </Form>
+            </div>
+          </Tabs.TabPane>
+        )}
       </Tabs>
 
       <Modal

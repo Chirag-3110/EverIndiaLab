@@ -60,3 +60,17 @@ export function getStatusTextAndColor(statusValue: string) {
     }
   );
 }
+
+
+export const bookingStatusColors = {
+  pending: "orange",
+  confirmed: "blue",
+  in_progress: "cyan",
+  in_route: "geekblue",
+  completed: "green",
+  cancelled: "red",
+  assigned: "purple",
+  started: "gold",
+  test_collected: "magenta",
+  temporary_completed: "lime",
+};

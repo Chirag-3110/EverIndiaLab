@@ -88,6 +88,15 @@ export const bookingApi = createApi({
       }),
       invalidatesTags: ["Booking"],
     }),
+    // Marked As Paid
+    markedAsPaidBooking: builder.mutation({
+      query: ({ id }) => ({
+        url: `booking/mark-booking-as-paid/${id}`,
+        method: "PUT",
+        body: {},
+      }),
+      invalidatesTags: ["Booking"],
+    }),
   }),
 });
 
@@ -100,4 +109,5 @@ export const {
   useAssignStaffBookingMutation,
   useMarkAsCompleteBookingMutation,
   useUploadReportToBookingMutation,
+  useMarkedAsPaidBookingMutation,
 } = bookingApi;

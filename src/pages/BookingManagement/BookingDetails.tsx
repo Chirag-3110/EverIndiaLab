@@ -17,6 +17,7 @@ import {
   useGetBookingDetailsQuery,
   useGetBookingQuery,
   useMarkAsCompleteBookingMutation,
+  useMarkedAsPaidBookingMutation,
   useUploadReportToBookingMutation,
 } from "../../redux/api/bookingApi";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -58,6 +59,8 @@ const BookingDetails = () => {
     useUploadReportToBookingMutation();
   const [assignStaffBooking, { isLoading: isAssigning }] =
     useAssignStaffBookingMutation();
+  const [markedAsPaidBooking, { isLoading: isPaying }] =
+    useMarkedAsPaidBookingMutation();
   const { data: StaffList, isFetching } = useGetStaffsQuery({
     searchText,
     page,
@@ -209,6 +212,17 @@ const BookingDetails = () => {
       key: "email",
     },
   ];
+
+  const handleMarkAsPaid = async () => {
+    try {
+      await markedAsPaidBooking({ id: booking?.response?.data?._id }).unwrap();
+      toast.success("Payment marked as paid!");
+      closeAllPopups();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to mark payment paid.");
+    }
+  };
 
   // ✅ Handle Payment Completion
   const handlePaymentComplete = async () => {
@@ -458,6 +472,20 @@ const BookingDetails = () => {
                 Mark As Completed
               </Button>
             ) : null}
+            {booking?.response?.data?.paymentStatus === "unpaid" && (
+              <Button
+                onClick={() => handleMarkAsPaid()}
+                style={{
+                  color: "#ffff",
+                  backgroundColor: "#27ae60",
+                  borderColor: "#27ae60",
+                  fontWeight: "600",
+                }}
+                loading={isPaying}
+              >
+                Mark As Paid
+              </Button>
+            )}
           </div>
         </Tabs.TabPane>
 

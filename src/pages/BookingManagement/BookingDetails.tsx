@@ -33,6 +33,9 @@ const BookingDetails = () => {
   const [file, setFile] = useState(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState(null);
 
+  const [files, setFiles] = useState([]);
+  const [previews, setPreviews] = useState([]);
+
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [popupVisible, setPopupVisible] = useState(false);
   const [markAsCompleteBooking, { isLoading: isSubmiting }] =
@@ -146,7 +149,22 @@ const BookingDetails = () => {
       key: "actions",
       render: (_, record) => (
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          {record.reportFile == null ? (
+          {Array.isArray(record.reportFiles) &&
+          record.reportFiles.length > 0 ? (
+            <div className="flex flex-col gap-1">
+              {record.reportFiles.map((fileUrl, index) => (
+                <a
+                  key={index}
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: "underline", color: "#1890ff" }}
+                >
+                  View Report {index + 1}
+                </a>
+              ))}
+            </div>
+          ) : (
             <Button
               type="primary"
               onClick={() => {
@@ -156,17 +174,6 @@ const BookingDetails = () => {
             >
               <UploadCloud /> Report
             </Button>
-          ) : (
-            <>
-              <a
-                href={record.reportFile}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ textDecoration: "underline", color: "#1890ff" }}
-              >
-                View Report
-              </a>
-            </>
           )}
         </div>
       ),
@@ -243,7 +250,8 @@ const BookingDetails = () => {
   };
 
   const allReportsUploaded = booking?.response?.data?.items?.every(
-    (item: any) => item.reportFile && item.reportFile.trim() !== ""
+    (item: any) =>
+      Array.isArray(item.reportFiles) && item.reportFiles.length > 0
   );
 
   console.log(allReportsUploaded);
@@ -314,57 +322,78 @@ const BookingDetails = () => {
             <Descriptions.Item label="Payment Type">
               {booking?.response?.data.paymentType}
             </Descriptions.Item>
-            <Descriptions.Item label="Address">{`${booking?.response?.data.userAddress.addressLine1}, ${booking?.response?.data.userAddress.city}, ${booking?.response?.data.userAddress.state}`}</Descriptions.Item>
+            <Descriptions.Item label="Address">
+              {booking?.response?.data.addressId
+                ? `${booking?.response?.data.addressId.description}`
+                : "-"}
+            </Descriptions.Item>
 
             <Descriptions.Item label="Cost Breakdown">
               <div>
-                <ol className="flex justify-between">
-                  <label htmlFor="">Total Amount:</label>
-                  {booking?.response?.data.amount.total}
-                </ol>
-                <ol className="flex justify-between">
-                  <label htmlFor="">Discount:</label>
-                  {booking?.response?.data.amount.discount}
-                </ol>
-                <ol className="flex justify-between">
-                  <label htmlFor="">Ever Cash:</label>
-                  {booking?.response?.data.amount.everCash}
-                </ol>
-                <ol className="flex justify-between">
-                  <label htmlFor="">Coupon Discount:</label>
-                  {booking?.response?.data.amount.couponAppliedAmount}
-                </ol>
-                <ol className="flex justify-between">
-                  <label htmlFor="">Final Amount:</label>
-                  {booking?.response?.data.amount.finalAmount}
-                </ol>
+                {booking?.response?.data?.amount?.total != null &&
+                  booking.response.data.amount.total !== 0 && (
+                    <ol className="flex justify-between">
+                      <label>Total Amount:</label>
+                      {booking.response.data.amount.total}
+                    </ol>
+                  )}
+                {booking?.response?.data?.amount?.discount != null &&
+                  booking.response.data.amount.discount !== 0 && (
+                    <ol className="flex justify-between">
+                      <label>Discount:</label>
+                      {booking.response.data.amount.discount}
+                    </ol>
+                  )}
+                {booking?.response?.data?.amount?.everCash != null &&
+                  booking.response.data.amount.everCash !== 0 && (
+                    <ol className="flex justify-between">
+                      <label>Ever Cash:</label>
+                      {booking.response.data.amount.everCash}
+                    </ol>
+                  )}
+                {booking?.response?.data?.amount?.couponAppliedAmount != null &&
+                  booking.response.data.amount.couponAppliedAmount !== 0 && (
+                    <ol className="flex justify-between">
+                      <label>Coupon Discount:</label>
+                      {booking.response.data.amount.couponAppliedAmount}
+                    </ol>
+                  )}
+                {booking?.response?.data?.amount?.finalAmount != null &&
+                  booking.response.data.amount.finalAmount !== 0 && (
+                    <ol className="flex justify-between">
+                      <label>Final Amount:</label>
+                      {booking.response.data.amount.finalAmount}
+                    </ol>
+                  )}
               </div>
             </Descriptions.Item>
           </Descriptions>
         </Tabs.TabPane>
 
-        <Tabs.TabPane tab="Member Details" key="2">
-          <Descriptions bordered column={1} size="small">
-            <Descriptions.Item label="Name">
-              {booking?.response?.data.familyMemberId?.name}
-            </Descriptions.Item>
-            <Descriptions.Item label="Age">
-              {booking?.response?.data.familyMemberId?.age}
-            </Descriptions.Item>
-            <Descriptions.Item label="Gender">
-              {booking?.response?.data.familyMemberId?.gender}
-            </Descriptions.Item>
-            <Descriptions.Item label="Relation">
-              {booking?.response?.data.familyMemberId?.relation}
-            </Descriptions.Item>
-            <Descriptions.Item label="Phone">
-              {booking?.response?.data.familyMemberId?.phoneNumber}
-            </Descriptions.Item>
-            <Descriptions.Item label="Email">
-              {booking?.response?.data.familyMemberId?.email}
-            </Descriptions.Item>
-          </Descriptions>
-        </Tabs.TabPane>
+        {booking?.response?.data.familyMemberId && (
+          <Tabs.TabPane tab="Member Details" key="2">
+            <Descriptions bordered column={1} size="small">
+              <Descriptions.Item label="Name">
+                {booking?.response?.data.familyMemberId?.name}
+              </Descriptions.Item>
+              <Descriptions.Item label="Age">
+                {booking?.response?.data.familyMemberId?.age}
+              </Descriptions.Item>
+              <Descriptions.Item label="Gender">
+                {booking?.response?.data.familyMemberId?.gender}
+              </Descriptions.Item>
+              <Descriptions.Item label="Relation">
+                {booking?.response?.data.familyMemberId?.relation}
+              </Descriptions.Item>
+              <Descriptions.Item label="Phone">
+                {booking?.response?.data.familyMemberId?.phoneNumber}
+              </Descriptions.Item>
+              <Descriptions.Item label="Email">
+                {booking?.response?.data.familyMemberId?.email}
+              </Descriptions.Item>
+            </Descriptions>
+          </Tabs.TabPane>
+        )}
 
         <Tabs.TabPane tab="Assigned Packages/Tests" key="3">
           <Table
@@ -474,77 +503,104 @@ const BookingDetails = () => {
         open={uploadModalOpen}
         onCancel={() => {
           setUploadModalOpen(false);
-          setFile(null);
-          setFilePreviewUrl(null);
+          setFiles([]);
+          setPreviews([]);
         }}
-        title="Upload Report (Image or PDF)"
+        title="Upload Reports (Images or PDFs)"
         footer={null}
         destroyOnClose
       >
-        <div className="rounded-md">
+        {/* FILE INPUT */}
+        <div>
           <input
             type="file"
             accept=".pdf,image/*"
+            multiple
             onChange={(e) => {
-              const selectedFile = e.target.files[0];
-              setFile(selectedFile);
-              if (selectedFile && selectedFile.type.startsWith("image/")) {
-                const reader = new FileReader();
-                reader.onload = (ev) =>
-                  setFilePreviewUrl(ev.target.result as string);
-                reader.readAsDataURL(selectedFile);
-              } else {
-                setFilePreviewUrl(null);
-              }
-              console.log("Selected file:", selectedFile);
+              const selectedFiles = Array.from(e.target.files || []);
+              setFiles(selectedFiles);
+
+              // Generate previews
+              const previewData = selectedFiles.map((file) => {
+                if (file.type.startsWith("image/")) {
+                  const reader = new FileReader();
+                  return new Promise((resolve) => {
+                    reader.onload = (ev) =>
+                      resolve({
+                        type: "image",
+                        url: ev.target.result,
+                        name: file.name,
+                      });
+                    reader.readAsDataURL(file);
+                  });
+                } else {
+                  return Promise.resolve({
+                    type: "pdf",
+                    name: file.name,
+                  });
+                }
+              });
+
+              Promise.all(previewData).then((res) => setPreviews(res));
             }}
-            className="border w-full p-2 rounded-md"
+            className="border w-full p-2 rounded-md cursor-pointer"
           />
         </div>
-        {file && file.type.startsWith("image/") && filePreviewUrl && (
-          <img
-            src={filePreviewUrl}
-            alt="Preview"
-            style={{
-              width: "100%",
-              maxHeight: 300,
-              marginTop: 16,
-              borderRadius: 6,
-              objectFit: "contain",
-            }}
-          />
-        )}
-        {file && file.type === "application/pdf" && (
-          <div style={{ marginTop: 16 }}>
-            <p>
-              PDF: <strong>{file.name}</strong>
-            </p>
+
+        {/* PREVIEWS */}
+        {previews.length > 0 && (
+          <div style={{ marginTop: 16 }} className="flex gap-4">
+            {previews.map((p, idx) =>
+              p.type === "image" ? (
+                <img
+                  key={idx}
+                  src={p.url}
+                  alt={p.name}
+                  style={{
+                    width: "20%",
+                    maxHeight: 100,
+                    marginBottom: 12,
+                    borderRadius: 6,
+                    objectFit: "contain",
+                  }}
+                />
+              ) : (
+                <p key={idx}>
+                  📄 PDF: <strong className="text-sm">{p.name}</strong>
+                </p>
+              )
+            )}
           </div>
         )}
+
+        {/* UPLOAD BUTTON */}
         <div className="mt-4 flex justify-end">
           <Button
             type="primary"
             loading={isUploading}
             onClick={async () => {
-              if (file) {
-                console.log("File to upload:", file);
+              if (files.length > 0) {
                 const formData = new FormData();
-                formData.append("image", file);
+
+                files.forEach((file) => {
+                  formData.append("images", file);
+                });
+
                 formData.append("itemId", selectedUploadItem?._id);
-                formData.append("bookingId", id);
+                formData.append("bookingId", booking?.response?.data?._id);
+
                 await uploadReportToBooking({
                   fd: formData,
-                  id: id,
+                  id: booking?.response?.data?._id,
                 })
                   .unwrap()
-                  .then(() => {
-                    toast.success("Report Uploaded Successfully");
-                  })
-                  .catch(() => {
-                    toast.error("Failed to upload the report.");
-                  });
+                  .then(() => toast.success("Reports uploaded successfully"))
+                  .catch(() => toast.error("Failed to upload reports"));
               }
+
               setUploadModalOpen(false);
+              setFiles([]);
+              setPreviews([]);
             }}
           >
             Confirm

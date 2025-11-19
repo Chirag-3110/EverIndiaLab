@@ -121,7 +121,7 @@ const BookingList = () => {
     return labBookings.filter((item: any) => {
       const matchesSearch =
         !searchText ||
-        item.orderId?.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.bookingId?.toLowerCase().includes(searchText.toLowerCase()) ||
         item.userId?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
         item.userAddress?.addressLine1
           ?.toLowerCase()
@@ -137,8 +137,8 @@ const BookingList = () => {
       const matchesDate =
         !dateRange ||
         (!dateRange[0] && !dateRange[1]) ||
-        (dayjs(item.bookingDate).isAfter(dateRange[0]) &&
-          dayjs(item.bookingDate).isBefore(dateRange[1]));
+        (dayjs(item.createdAt).isAfter(dateRange[0]) &&
+          dayjs(item.createdAt).isBefore(dateRange[1]));
 
       return (
         matchesSearch &&
@@ -232,7 +232,8 @@ const BookingList = () => {
       key: "actions",
       render: (_: any, record: any) => {
         const allReportsUploaded = record.items?.every(
-          (item: any) => item.reportFile && item.reportFile.trim() !== ""
+          (item: any) =>
+            Array.isArray(item.reportFiles) && item.reportFiles.length > 0
         );
 
         return (

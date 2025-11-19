@@ -17,7 +17,11 @@ import {
   useGetBookingQuery,
   useMarkAsCompleteBookingMutation,
 } from "../../redux/api/bookingApi";
-import { formatDate, formatDateTime } from "../../utils/utils";
+import {
+  bookingStatusColors,
+  formatDate,
+  formatDateTime,
+} from "../../utils/utils";
 import { EyeIcon, LucideBanknote } from "lucide-react";
 import { UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -181,6 +185,7 @@ const BookingList = () => {
           : "";
         return `${dateStr}${slotStr}`;
       },
+      minWidth: 250,
     },
 
     // {
@@ -202,23 +207,23 @@ const BookingList = () => {
     },
     {
       title: "Address",
-      dataIndex: "address",
-      key: "address",
-      render: (_: any, record: any) =>
-        [
-          record.userAddress?.addressLine1,
-          record.userAddress?.city,
-          record.userAddress?.state,
-        ]
-          .filter(Boolean)
-          .join(", "),
+      dataIndex: ["addressId", "description"],
+      key: "addressId",
+      render: (value) => {
+        if (!value) return "--";
+        const maxLength = 80;
+        return value.length > maxLength
+          ? value.slice(0, maxLength) + "..."
+          : value;
+      },
+      minWidth: 280,
     },
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
       render: (status: string) => (
-        <Tag color={status === "pending" ? "orange" : "green"}>{status}</Tag>
+        <Tag color={bookingStatusColors[status] || "default"}>{status}</Tag>
       ),
     },
     {
@@ -226,6 +231,7 @@ const BookingList = () => {
       dataIndex: "createdAt",
       key: "createdAt",
       render: (date: string) => formatDateTime(date),
+      minWidth: 120,
     },
     {
       title: "Actions",
@@ -242,6 +248,7 @@ const BookingList = () => {
               <EyeIcon size={18} />
             </Button>
             {record?.status !== "completed" &&
+            record?.status !== "cancelled" &&
             record?.paymentType === "cash" &&
             allReportsUploaded ? (
               <Button

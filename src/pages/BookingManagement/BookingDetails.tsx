@@ -264,7 +264,7 @@ const BookingDetails = () => {
       </Button>
 
       <div className="flex justify-between items-center mt-0">
-        {booking?.status === "cancelled" && (
+        {booking?.response?.data?.status === "cancelled" && (
           <div className="bg-red-50 border border-red-300 rounded-md py-1.5 px-2 italic shadow-sm text-sm text-red-700 font-medium">
             {booking?.response?.data?.cancellationReason ||
               "No cancellation reason provided"}
@@ -319,6 +319,7 @@ const BookingDetails = () => {
                 {booking?.response?.data.status}
               </Tag>
             </Descriptions.Item>
+
             <Descriptions.Item label="Payment Type">
               {booking?.response?.data.paymentType}
             </Descriptions.Item>
@@ -356,6 +357,13 @@ const BookingDetails = () => {
                     <ol className="flex justify-between">
                       <label>Coupon Discount:</label>
                       {booking.response.data.amount.couponAppliedAmount}
+                    </ol>
+                  )}
+                {booking?.response?.data?.amount?.platformFee != null &&
+                  booking?.response?.data?.amount.platformFee !== 0 && (
+                    <ol className="flex justify-between">
+                      <label htmlFor="">Home Collection Fee:</label>
+                      {booking?.response?.data?.amount.platformFee}
                     </ol>
                   )}
                 {booking?.response?.data?.amount?.finalAmount != null &&
@@ -518,13 +526,16 @@ const BookingDetails = () => {
             multiple
             onChange={(e) => {
               const selectedFiles = Array.from(e.target.files || []);
-              setFiles(selectedFiles);
 
-              // Generate previews
-              const previewData = selectedFiles.map((file) => {
+              // Merge new + old files
+              const updatedFiles = [...files, ...selectedFiles];
+              setFiles(updatedFiles);
+
+              // Generate previews for new files only
+              const newPreviewPromises = selectedFiles.map((file) => {
                 if (file.type.startsWith("image/")) {
-                  const reader = new FileReader();
                   return new Promise((resolve) => {
+                    const reader = new FileReader();
                     reader.onload = (ev) =>
                       resolve({
                         type: "image",
@@ -541,35 +552,75 @@ const BookingDetails = () => {
                 }
               });
 
-              Promise.all(previewData).then((res) => setPreviews(res));
+              Promise.all(newPreviewPromises).then((newPreviews) => {
+                setPreviews((prev) => [...prev, ...newPreviews]);
+              });
             }}
             className="border w-full p-2 rounded-md cursor-pointer"
           />
         </div>
 
-        {/* PREVIEWS */}
+        {/* PREVIEWS WITH REMOVE OPTION */}
         {previews.length > 0 && (
-          <div style={{ marginTop: 16 }} className="flex gap-4">
-            {previews.map((p, idx) =>
-              p.type === "image" ? (
-                <img
-                  key={idx}
-                  src={p.url}
-                  alt={p.name}
-                  style={{
-                    width: "20%",
-                    maxHeight: 100,
-                    marginBottom: 12,
-                    borderRadius: 6,
-                    objectFit: "contain",
+          <div style={{ marginTop: 16 }} className="flex felx-col">
+            {previews.map((p, idx) => (
+              <div
+                key={idx}
+                style={{
+                  border: "1px solid #eee",
+                  padding: 10,
+                  borderRadius: 6,
+                  marginBottom: 12,
+                  position: "relative",
+                }}
+              >
+                {/* REMOVE BUTTON */}
+                <button
+                  onClick={() => {
+                    const updatedPreviews = previews.filter(
+                      (_, i) => i !== idx
+                    );
+                    const updatedFiles = files.filter((_, i) => i !== idx);
+
+                    setPreviews(updatedPreviews);
+                    setFiles(updatedFiles);
                   }}
-                />
-              ) : (
-                <p key={idx}>
-                  📄 PDF: <strong className="text-sm">{p.name}</strong>
-                </p>
-              )
-            )}
+                  style={{
+                    position: "absolute",
+                    top: 6,
+                    right: 6,
+                    color: "white",
+                    background: "red",
+                    border: "none",
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                  }}
+                >
+                  ✕
+                </button>
+
+                {/* IMAGE PREVIEW */}
+                {p.type === "image" ? (
+                  <img
+                    src={p.url}
+                    alt={p.name}
+                    style={{
+                      width: "100%",
+                      maxHeight: 300,
+                      borderRadius: 6,
+                      objectFit: "contain",
+                    }}
+                  />
+                ) : (
+                  /* PDF PREVIEW */
+                  <p>
+                    📄 PDF: <strong>{p.name}</strong>
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
         )}
 
@@ -578,6 +629,7 @@ const BookingDetails = () => {
           <Button
             type="primary"
             loading={isUploading}
+            disabled={files.length === 0}
             onClick={async () => {
               if (files.length > 0) {
                 const formData = new FormData();

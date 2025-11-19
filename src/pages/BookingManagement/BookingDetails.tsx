@@ -282,6 +282,18 @@ const BookingDetails = () => {
         <Tabs.TabPane tab="Booking Info" key="1">
           <Descriptions bordered column={1} size="small">
             <Descriptions.Item label="User Name">
+              <div className="flex justify-end">
+                {/* <label htmlFor="">Payment Status:</label> */}
+                <p
+                  className={`font-bold uppercase px-2 py-1 rounded ${
+                    booking.response?.data.paymentStatus === "paid"
+                      ? "text-green-700 bg-green-100"
+                      : "text-red-700 bg-red-100"
+                  }`}
+                >
+                  {booking?.paymentStatus}
+                </p>
+              </div>
               {booking.response?.data.userId.name || "--"}
             </Descriptions.Item>
             <Descriptions.Item label="Gender">
@@ -412,7 +424,9 @@ const BookingDetails = () => {
           />
           <div className="mt-8 flex justify-end">
             {booking?.response?.data?.status !== "completed" &&
+            booking?.response?.data?.status !== "cancelled" &&
             booking?.response?.data?.paymentType === "cash" &&
+            booking?.response?.data?.paymentStatus === "paid" &&
             allReportsUploaded ? (
               <Button
                 onClick={() => handleCashPayment(booking?.response?.data)}
@@ -428,6 +442,8 @@ const BookingDetails = () => {
               </Button>
             ) : null}
             {booking?.response?.data?.paymentType === "online" &&
+            booking?.response?.data?.status !== "completed" &&
+            booking?.response?.data?.status !== "cancelled" &&
             allReportsUploaded ? (
               <Button
                 onClick={() => handleOnlinePayment(booking?.response?.data)}

@@ -219,6 +219,19 @@ const BookingList = () => {
       minWidth: 280,
     },
     {
+      title: "Payment Status",
+      dataIndex: "paymentStatus",
+      key: "paymentStatus",
+      render: (status) => {
+        let color = status === "paid" ? "green" : "red";
+        return (
+          <Tag color={color} style={{ textTransform: "capitalize" }}>
+            {status}
+          </Tag>
+        );
+      },
+    },
+    {
       title: "Status",
       dataIndex: "status",
       key: "status",
@@ -250,6 +263,7 @@ const BookingList = () => {
             {record?.status !== "completed" &&
             record?.status !== "cancelled" &&
             record?.paymentType === "cash" &&
+            record?.paymentStatus === "paid" &&
             allReportsUploaded ? (
               <Button
                 onClick={() => handleCashPayment(record)}
@@ -265,7 +279,10 @@ const BookingList = () => {
               </Button>
             ) : null}
 
-            {record?.paymentType === "online" && allReportsUploaded ? (
+            {record?.paymentType === "online" &&
+            record?.status !== "completed" &&
+            record?.status !== "cancelled" &&
+            allReportsUploaded ? (
               <Button
                 onClick={() => handleOnlinePayment(record)}
                 style={{
@@ -308,6 +325,7 @@ const BookingList = () => {
           options={[
             { value: "pending", label: "Pending" },
             { value: "completed", label: "Completed" },
+            { value: "cancelled", label: "Cancelled" },
             { value: "in_progress", label: "In Progress" },
             { value: "in_route", label: "In Route" },
             { value: "confirmed", label: "Confirmed" },

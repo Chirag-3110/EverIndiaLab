@@ -273,9 +273,23 @@ const BookingDetails = () => {
   return (
     <div>
       <PageBreadcrumb pageTitle={"Booking Details"} />
-      <Button onClick={() => navigate(-1)} style={{ marginBottom: 20 }}>
-        ← Back to Bookings
-      </Button>
+      <div className="flex justify-between items-center">
+        <Button onClick={() => navigate(-1)} style={{ marginBottom: 20 }}>
+          ← Back to Bookings
+        </Button>
+        <div className="flex justify-end">
+          {/* <label htmlFor="">Payment Status:</label> */}
+          <p
+            className={`font-bold uppercase px-2 py-1 rounded ${
+              booking?.response?.data?.paymentStatus === "paid"
+                ? "text-green-700 bg-green-100"
+                : "text-red-700 bg-red-100"
+            }`}
+          >
+            {booking?.response?.data?.paymentStatus}
+          </p>
+        </div>
+      </div>
 
       <div className="flex justify-between items-center mt-0">
         {booking?.response?.data?.status === "cancelled" && (
@@ -285,9 +299,9 @@ const BookingDetails = () => {
           </div>
         )}
 
-        <div className="bg-green-50 border border-green-300 rounded-md px-4 py-2 shadow-sm flex items-center gap-2">
-          <span className="text-green-700 font-semibold text-lg">Total:</span>
-          <span className="text-green-800 font-bold text-lg">
+        <div className="bg-green-50 border border-green-300 rounded-md px-4 py-1.5 shadow-sm flex items-center gap-2">
+          <span className="text-green-700 font-semibold text-md">Total:</span>
+          <span className="text-green-800 font-bold text-md">
             ₹{booking?.response?.data.amount.finalAmount || 0}
           </span>
         </div>
@@ -296,18 +310,6 @@ const BookingDetails = () => {
         <Tabs.TabPane tab="Booking Info" key="1">
           <Descriptions bordered column={1} size="small">
             <Descriptions.Item label="User Name">
-              <div className="flex justify-end">
-                {/* <label htmlFor="">Payment Status:</label> */}
-                <p
-                  className={`font-bold uppercase px-2 py-1 rounded ${
-                    booking.response?.data.paymentStatus === "paid"
-                      ? "text-green-700 bg-green-100"
-                      : "text-red-700 bg-red-100"
-                  }`}
-                >
-                  {booking?.paymentStatus}
-                </p>
-              </div>
               {booking.response?.data.userId.name || "--"}
             </Descriptions.Item>
             <Descriptions.Item label="Gender">
@@ -327,6 +329,9 @@ const BookingDetails = () => {
             </Descriptions.Item> */}
             <Descriptions.Item label="Booking ID">
               {booking?.response?.data.bookingId || "--"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Booking Type">
+              {booking?.response?.data.amount?.collectiontype || "--"}
             </Descriptions.Item>
             <Descriptions.Item label="Booking Date">
               {formatDateTime(booking?.response?.data.bookingDate)}
@@ -364,13 +369,13 @@ const BookingDetails = () => {
                       {booking.response.data.amount.total}
                     </ol>
                   )}
-                {booking?.response?.data?.amount?.discount != null &&
+                {/* {booking?.response?.data?.amount?.discount != null &&
                   booking.response.data.amount.discount !== 0 && (
                     <ol className="flex justify-between">
                       <label>Discount:</label>
                       {booking.response.data.amount.discount}
                     </ol>
-                  )}
+                  )} */}
                 {booking?.response?.data?.amount?.everCash != null &&
                   booking.response.data.amount.everCash !== 0 && (
                     <ol className="flex justify-between">

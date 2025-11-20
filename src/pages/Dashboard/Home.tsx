@@ -10,8 +10,10 @@ import MonthlySalesChart from "../../components/ecommerce/MonthlySalesChart";
 import StatisticsChart from "../../components/ecommerce/StatisticsChart";
 import { useGetdashboardQuery } from "../../redux/api/dasboardApi";
 import { Spin } from "antd";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
   const { data, isLoading } = useGetdashboardQuery({});
   const stats = data?.response?.data || {};
 
@@ -47,7 +49,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3 flex-wrap">
                 <ClipboardList className="w-8 h-8 text-[#07868D]" />
                 <h1 className="text-3xl font-extrabold text-[#07868D]">
-                  Lab Admin Dashboard
+                  {user?.name} Dashboard
                 </h1>
               </div>
 

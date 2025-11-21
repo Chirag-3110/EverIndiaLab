@@ -9,25 +9,27 @@ const libs: Libraries = ["places"];
 
 export default function UpdateProfile() {
   const [form] = Form.useForm();
+
   const [selectedLocation, setSelectedLocation] = useState({
     lat: 0,
     lng: 0,
   });
 
-  const [updateUserProfile, { isLoading: updating }] =
-    useUpdateUserProfileMutation();
+  const [addressSelectedByAutocomplete, setAddressSelectedByAutocomplete] =
+    useState(false);
+
+  const addressRef = useRef<any>(null);
 
   const { data: labDetail } = useGetlabDetailsQuery({});
-
-  // IMPORTANT: Antd InputRef, NOT HTMLInputElement
-  const addressRef = useRef<any>(null);
+  const [updateUserProfile, { isLoading: updating }] =
+    useUpdateUserProfileMutation();
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_MAP_KEY,
     libraries: libs,
   });
 
-  // Prefill form
+  // Prefill
   useEffect(() => {
     if (labDetail?.response?.lab) {
       const lab = labDetail.response.lab;
@@ -43,15 +45,15 @@ export default function UpdateProfile() {
         lat: lab.latitude || 0,
         lng: lab.longitude || 0,
       });
+
+      setAddressSelectedByAutocomplete(true); // existing address is valid
     }
   }, [labDetail]);
 
-  console.log(selectedLocation);
-
-  // Google Autocomplete Setup
+  // Google Autocomplete
   useEffect(() => {
     if (isLoaded && addressRef.current?.input) {
-      const autocomplete = new window.google.maps.places.Autocomplete(
+      const autocomplete = new google.maps.places.Autocomplete(
         addressRef.current.input,
         {
           fields: ["formatted_address", "geometry"],
@@ -61,25 +63,30 @@ export default function UpdateProfile() {
       autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
 
-        if (place?.formatted_address) {
-          form.setFieldsValue({
-            address: place.formatted_address,
-          });
-        }
+        if (!place.geometry) return;
 
-        if (place.geometry?.location) {
-          const lat = place.geometry.location.lat();
-          const lng = place.geometry.location.lng();
+        setAddressSelectedByAutocomplete(true);
 
-          setSelectedLocation({ lat, lng });
-        }
+        setSelectedLocation({
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+        });
+
+        form.setFieldsValue({
+          address: place.formatted_address,
+        });
       });
     }
   }, [isLoaded]);
 
   const handleSubmit = async (values: any) => {
-    if (!selectedLocation.lat || !selectedLocation.lng) {
-      toast.info("Please select a valid address from suggestions.");
+    // VALIDATION: Prevent pasted/typed address
+    if (
+      !addressSelectedByAutocomplete ||
+      selectedLocation.lat === 0 ||
+      selectedLocation.lng === 0
+    ) {
+      toast.error("Please select address from autocomplete suggestions.");
       return;
     }
 
@@ -123,11 +130,15 @@ export default function UpdateProfile() {
             <Input placeholder="Enter contact number" />
           </Form.Item>
 
-          {/* GOOGLE AUTOCOMPLETE WORKS NOW */}
           <Form.Item name="address" label="Address">
             <Input
               placeholder="Search address"
-              ref={addressRef} // <-- Correct ref for Antd Input
+              ref={addressRef}
+              onChange={() => {
+                // User manually typed → not valid
+                setAddressSelectedByAutocomplete(false);
+                setSelectedLocation({ lat: 0, lng: 0 });
+              }}
             />
           </Form.Item>
 

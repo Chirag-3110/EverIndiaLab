@@ -42,6 +42,9 @@ const BookingList = () => {
   const [dateRange, setDateRange] = useState<
     [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
   >(null);
+  const [dateBookingRange, setDateBookingRange] = useState<
+    [dayjs.Dayjs | null, dayjs.Dayjs | null] | null
+  >(null);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
@@ -144,12 +147,21 @@ const BookingList = () => {
         (dayjs(item.createdAt).isAfter(dateRange[0]) &&
           dayjs(item.createdAt).isBefore(dateRange[1]));
 
+      const matchesBookingDate =
+        !dateBookingRange ||
+        (!dateBookingRange[0] && !dateBookingRange[1]) ||
+        ((dayjs(item.bookingDate).isSame(dateBookingRange[0], "day") ||
+          dayjs(item.bookingDate).isAfter(dateBookingRange[0], "day")) &&
+          (dayjs(item.bookingDate).isSame(dateBookingRange[1], "day") ||
+            dayjs(item.bookingDate).isBefore(dateBookingRange[1], "day")));
+
       return (
         matchesSearch &&
         matchesStatus &&
         matchesPayment &&
         matchesDate &&
-        matchesCollection
+        matchesCollection &&
+        matchesBookingDate
       );
     });
   }, [
@@ -159,6 +171,7 @@ const BookingList = () => {
     paymentTypeFilter,
     collectionTypeFilter,
     dateRange,
+    dateBookingRange,
   ]);
 
   // ✅ Table Columns
@@ -219,6 +232,13 @@ const BookingList = () => {
       minWidth: 280,
     },
     {
+      title: "Created Date",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) => formatDateTime(date),
+      minWidth: 120,
+    },
+    {
       title: "Payment Status",
       dataIndex: "paymentStatus",
       key: "paymentStatus",
@@ -239,13 +259,7 @@ const BookingList = () => {
         <Tag color={bookingStatusColors[status] || "default"}>{status}</Tag>
       ),
     },
-    {
-      title: "Created Date",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (date: string) => formatDateTime(date),
-      minWidth: 120,
-    },
+
     {
       title: "Actions",
       key: "actions",
@@ -308,55 +322,87 @@ const BookingList = () => {
 
       {/* 🔍 Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <Input.Search
-          placeholder="Search Order / Name / Address"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          allowClear
-          style={{ width: 250 }}
-        />
+        <div className="flex flex-col">
+          <label htmlFor="" className="text-gray-600">
+            Search
+          </label>
 
-        <Select
-          placeholder="Status"
-          allowClear
-          value={statusFilter}
-          onChange={setStatusFilter}
-          style={{ width: 150 }}
-          options={[
-            { value: "pending", label: "Pending" },
-            { value: "completed", label: "Completed" },
-            { value: "cancelled", label: "Cancelled" },
-            { value: "in_progress", label: "In Progress" },
-            { value: "in_route", label: "In Route" },
-            { value: "confirmed", label: "Confirmed" },
-            { value: "assigned", label: "Assigned" },
-            { value: "started", label: "Started" },
-            { value: "test_collected", label: "Test Collected" },
-            { value: "cancelled", label: "Cancelled" },
-            {
-              value: "temporary_completed",
-              label: "Temporary Completed",
-            },
-          ]}
-        />
+          <Input.Search
+            placeholder="Search Order / Name / Address"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            allowClear
+            style={{ width: 250 }}
+          />
+        </div>
 
-        <Select
-          placeholder="Payment Type"
-          allowClear
-          value={paymentTypeFilter}
-          onChange={setPaymentTypeFilter}
-          style={{ width: 160 }}
-          options={[
-            { value: "cash", label: "Cash" },
-            { value: "online", label: "Online" },
-          ]}
-        />
+        <div className="flex flex-col">
+          <label htmlFor="" className="text-gray-600">
+            Status
+          </label>
 
-        <RangePicker
-          onChange={(val) => setDateRange(val)}
-          style={{ width: 280 }}
-          allowEmpty={[true, true]}
-        />
+          <Select
+            placeholder="Status"
+            allowClear
+            value={statusFilter}
+            onChange={setStatusFilter}
+            style={{ width: 150 }}
+            options={[
+              { value: "pending", label: "Pending" },
+              { value: "completed", label: "Completed" },
+              { value: "cancelled", label: "Cancelled" },
+              { value: "in_progress", label: "In Progress" },
+              { value: "in_route", label: "In Route" },
+              { value: "confirmed", label: "Confirmed" },
+              { value: "assigned", label: "Assigned" },
+              { value: "started", label: "Started" },
+              { value: "test_collected", label: "Test Collected" },
+              { value: "cancelled", label: "Cancelled" },
+              {
+                value: "temporary_completed",
+                label: "Temporary Completed",
+              },
+            ]}
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor="" className="text-gray-600">
+            Payment Type{" "}
+          </label>
+          <Select
+            placeholder="Payment Type"
+            allowClear
+            value={paymentTypeFilter}
+            onChange={setPaymentTypeFilter}
+            style={{ width: 160 }}
+            options={[
+              { value: "cash", label: "Cash" },
+              { value: "online", label: "Online" },
+            ]}
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label htmlFor="" className="text-gray-600">
+            Booking Date{" "}
+          </label>
+          <RangePicker
+            onChange={(val) => setDateBookingRange(val)}
+            style={{ width: 280 }}
+            allowEmpty={[true, true]}
+          />
+        </div>
+        <div className="flex flex-col">
+          <label htmlFor="" className="text-gray-600">
+            Date{" "}
+          </label>
+          <RangePicker
+            onChange={(val) => setDateRange(val)}
+            style={{ width: 280 }}
+            allowEmpty={[true, true]}
+          />
+        </div>
       </div>
 
       {/* 📋 Table */}

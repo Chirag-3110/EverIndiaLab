@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card, Form, Input, Button } from "antd";
 import { toast } from "react-toastify";
 import { useUpdateUserProfileMutation } from "../../redux/api/profileApi";
@@ -9,13 +9,18 @@ const libs: Libraries = ["places"];
 
 export default function UpdateProfile() {
   const [form] = Form.useForm();
+  const [selectedLocation, setSelectedLocation] = useState({
+    lat: 0,
+    lng: 0,
+  });
+
   const [updateUserProfile, { isLoading: updating }] =
     useUpdateUserProfileMutation();
 
   const { data: labDetail } = useGetlabDetailsQuery({});
 
-  // 👉 Must be HTML input element for Google Autocomplete
-  const addressRef = useRef<HTMLInputElement | null>(null);
+  // IMPORTANT: Antd InputRef, NOT HTMLInputElement
+  const addressRef = useRef<any>(null);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: import.meta.env.VITE_MAP_KEY,
@@ -33,14 +38,21 @@ export default function UpdateProfile() {
         phoneNumber: lab.contactNumber,
         address: lab.address,
       });
+
+      setSelectedLocation({
+        lat: lab.latitude || 0,
+        lng: lab.longitude || 0,
+      });
     }
   }, [labDetail]);
 
+  console.log(selectedLocation);
+
   // Google Autocomplete Setup
   useEffect(() => {
-    if (isLoaded && addressRef.current) {
-      const autocomplete = new google.maps.places.Autocomplete(
-        addressRef.current,
+    if (isLoaded && addressRef.current?.input) {
+      const autocomplete = new window.google.maps.places.Autocomplete(
+        addressRef.current.input,
         {
           fields: ["formatted_address", "geometry"],
         }
@@ -54,17 +66,31 @@ export default function UpdateProfile() {
             address: place.formatted_address,
           });
         }
+
+        if (place.geometry?.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+
+          setSelectedLocation({ lat, lng });
+        }
       });
     }
   }, [isLoaded]);
 
   const handleSubmit = async (values: any) => {
+    if (!selectedLocation.lat || !selectedLocation.lng) {
+      toast.info("Please select a valid address from suggestions.");
+      return;
+    }
+
     try {
       const fd = new FormData();
       fd.append("name", values.name);
       fd.append("email", values.email);
       fd.append("contactNumber", values.phoneNumber);
       fd.append("address", values.address);
+      fd.append("latitude", selectedLocation.lat.toString());
+      fd.append("longitude", selectedLocation.lng.toString());
 
       await updateUserProfile({
         id: labDetail?.response?.lab._id,
@@ -97,19 +123,11 @@ export default function UpdateProfile() {
             <Input placeholder="Enter contact number" />
           </Form.Item>
 
-          {/* PERFECT GOOGLE AUTOCOMPLETE */}
+          {/* GOOGLE AUTOCOMPLETE WORKS NOW */}
           <Form.Item name="address" label="Address">
             <Input
               placeholder="Search address"
-              defaultValue={labDetail?.response?.lab?.address}
-              ref={(el) => {
-                // el = Antd Input component instance
-                // el?.input = the REAL HTML input element
-                addressRef.current = el?.input || null;
-              }}
-              onChange={(e) => {
-                form.setFieldsValue({ address: e.target.value });
-              }}
+              ref={addressRef} // <-- Correct ref for Antd Input
             />
           </Form.Item>
 

@@ -27,7 +27,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useGetmasterPanelApiQuery } from "../../redux/api/masterPanelApi";
 
 const { Option } = Select;
-
+const genders = ["Male", "Female", "Both"];
 const PackageForm = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ const PackageForm = () => {
   const location = useLocation();
   const editData = location.state || null;
 
-  console.log(editData);
+  // console.log(editData);
 
   const { data: category } = useGetCategoryListQuery("");
   const { data: age, isFetching: isLoadingAge } =
@@ -62,9 +62,9 @@ const PackageForm = () => {
     page,
     pageSize: 10,
   });
-  console.log(adminPackages);
+  // console.log(adminPackages);
   const testList = adminPackages?.response?.testForms ?? [];
-  console.log(testList);
+  // console.log(testList);
   const total = adminPackages?.response?.pagination?.totalCount ?? 0;
 
   // 🧩 When editing — prefill form and only keep test IDs
@@ -87,7 +87,7 @@ const PackageForm = () => {
     }
   }, [editData]);
 
-  console.log(selectedTests);
+  // console.log(selectedTests);
   // console.log(packageList)
 
   const allSelected =
@@ -258,6 +258,28 @@ const PackageForm = () => {
             </Form.Item>
           </Col>
         </Row>
+        {/* <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="recommendedGender"
+              label="Recommended Gender"
+              rules={[{ required: true, message: "Select gender" }]}
+            >
+              <Select placeholder="Select gender" allowClear>
+                {genders.map((g) => (
+                  <Option key={g.toLowerCase()} value={g}>
+                    {g}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="fasting" label="Fasting">
+              <Input placeholder="eg: 2hr Water fasting" />
+            </Form.Item>
+          </Col>
+        </Row> */}
 
         <Row gutter={16}>
           <Col span={12}>

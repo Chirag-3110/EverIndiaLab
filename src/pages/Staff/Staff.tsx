@@ -16,7 +16,6 @@ import { ConsoleSqlOutlined, UploadOutlined } from "@ant-design/icons";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { toast } from "react-toastify";
 import { useSidebar } from "../../context/SidebarContext";
-import { Ban, CheckCircle, SquarePen, Trash2, XCircle } from "lucide-react";
 import {
   useAddStaffMutation,
   useGetStaffsQuery,
@@ -26,7 +25,6 @@ import {
   useUnassignedStaffMutation,
 } from "../../redux/api/staffApi";
 import { formatDate } from "../../utils/utils";
-import { useGetlabsQuery } from "../../redux/api/labsApi";
 import { useAuth } from "../../context/AuthContext";
 
 const { Option } = Select;
@@ -36,7 +34,6 @@ const Staff = () => {
   const [searchText, setSearchText] = useState("");
 
   const { data, isLoading } = useGetStaffsQuery(searchText);
-  const { data: labList } = useGetlabsQuery({});
   const { isExpanded, isHovered } = useSidebar();
 
   const [addUser] = useAddStaffMutation();
@@ -52,7 +49,7 @@ const Staff = () => {
   const [imageFile, setImageFile] = useState<RcFile | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  console.log(imageFile, imagePreview);
+  // console.log(imageFile, imagePreview);
 
   const handleSearchChange = (e: any) => {
     setSearchText(e.target.value);

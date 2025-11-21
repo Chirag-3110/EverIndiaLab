@@ -71,8 +71,8 @@ const PackageList = () => {
       key: "title",
       render: (text, record) => (
         <span
-          style={{ cursor: "pointer", color: "#1890ff" }}
-          onClick={() => navigate(`/packages/details/${record._id}`)}
+        // style={{ cursor: "pointer", color: "#1890ff" }}
+        // onClick={() => navigate(`/packages/details/${record._id}`)}
         >
           {text}
         </span>
@@ -96,47 +96,56 @@ const PackageList = () => {
       key: "price",
       render: (v) => `₹${v}`,
     },
-    // {
-    //   title: "Status",
-    //   dataIndex: "status",
-    //   key: "status",
-    //   render: (v) => (
-    //     <Tag color={v ? "green" : "red"} style={{ cursor: "pointer" }}>
-    //       {v ? "Active" : "Inactive"}
-    //     </Tag>
-    //   ),
-    // },
+
     {
       title: "Actions",
       key: "actions",
       render: (_, record) => (
         <Space>
-          {/* <Button
-            icon={
-              record.status === true ? (
-                <CheckCircleOutlined style={{ color: "green" }} />
-              ) : (
-                <CloseCircleOutlined style={{ color: "red" }} />
-              )
-            }
-            onClick={() => handleStatusChange(record)}
-          /> */}
-          {/* <Button
-            icon={<EditOutlined />}
-            onClick={() =>
-              navigate(`/packages/edit/${record._id}`, { state: record })
-            }
-          /> */}
           <Popconfirm
             title="Are you sure to delete?"
             onConfirm={() => handleDelete(record._id)}
           >
-            <Button danger  >Remove</Button>
+            <Button danger>Remove</Button>
           </Popconfirm>
         </Space>
       ),
     },
   ];
+
+    const includedTestsColumns = [
+      {
+        title: "Test Title",
+        dataIndex: "title",
+        key: "title",
+      },
+      {
+        title: "Category",
+        dataIndex: "category",
+        key: "category",
+      },
+      {
+        title: "Description",
+        dataIndex: "description",
+        key: "description",
+        render: (text) => text || "-",
+      },
+      {
+        title: "Recommended Gender",
+        dataIndex: "recommendedGender",
+        key: "recommendedGender",
+      },
+      {
+        title: "Report Time",
+        dataIndex: "reportTime",
+        key: "reportTime",
+      },
+      {
+        title: "Price",
+        dataIndex: "price",
+        key: "price",
+      },
+    ];
 
   return (
     <div>
@@ -186,6 +195,20 @@ const PackageList = () => {
             setPage(p);
             setPageSize(ps);
           },
+        }}
+        expandable={{
+          expandedRowRender: (record) => (
+            <Table
+              columns={includedTestsColumns}
+              dataSource={record.includedTests}
+              rowKey="_id"
+              pagination={false}
+              size="small"
+            />
+          ),
+          rowExpandable: (record) =>
+            Array.isArray(record.includedTests) &&
+            record.includedTests.length > 0,
         }}
       />
     </div>

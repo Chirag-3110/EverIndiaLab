@@ -37,14 +37,15 @@ const PackageAssign = () => {
   console.log(editData);
 
   const { data: category } = useGetCategoryListQuery("");
-  const { data: AdminPackages } = useGetActiveAdminPackageQuery("");
+  const { data: AdminPackages, isLoading } = useGetActiveAdminPackageQuery("");
   console.log(AdminPackages);
 
   const [form] = Form.useForm();
   const [selectedTests, setSelectedTests] = useState([]);
   const [includedTestsDetails, setIncludedTestsDetails] = useState([]);
 
-  const [assignpackage] = useAssignpackageMutation();
+  const [assignpackage, { isLoading: isAssigning }] =
+    useAssignpackageMutation();
   const [updatePackage] = useUpdatepackageMutation();
 
   const [searchText, setSearchText] = useState("");
@@ -308,11 +309,12 @@ const PackageAssign = () => {
           }}
           pagination={{ pageSize: 5 }}
           bordered
+          loading={isLoading}
         />
 
         <div className="mt-6 flex justify-end gap-3">
           <Button onClick={() => navigate("/packages")}>Cancel</Button>
-          <Button type="primary" onClick={handleSave}>
+          <Button type="primary" onClick={handleSave} loading={isAssigning}>
             {"Assign Package"}
           </Button>
         </div>

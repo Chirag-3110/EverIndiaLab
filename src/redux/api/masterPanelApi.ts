@@ -44,8 +44,5 @@ export const masterPanelApi = createApi({
   }),
 });
 
-export const {
-  useGetmasterPanelApiQuery,
-  useUpdatemasterPanelApiMutation,
-  useGetmethodPanelApiQuery,
-} = masterPanelApi;
+export const { useGetmasterPanelApiQuery, useUpdatemasterPanelApiMutation, useGetmethodPanelApiQuery } =
+  masterPanelApi;

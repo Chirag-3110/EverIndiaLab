@@ -40,9 +40,9 @@ const AssignTestForm = () => {
   const [selectedTests, setSelectedTests] = useState([]);
   const [includedTestsDetails, setIncludedTestsDetails] = useState([]);
 
-  console.log(selectedTests);
+  // console.log(selectedTests);
 
-  const [addtestForm] = useAddtestFormMutation();
+  const [addtestForm, {isLoading}] = useAddtestFormMutation();
   const [updatePackage] = useUpdatepackageMutation();
 
   const [searchText, setSearchText] = useState("");
@@ -206,7 +206,6 @@ const AssignTestForm = () => {
       {/* 🔙 Back button */}
       <div className="mb-4 gap-4 flex justify-between">
         <Button onClick={() => navigate("/test-form")}>← Back to Test</Button>
-        
       </div>
 
       <Form form={form} layout="vertical">
@@ -282,7 +281,7 @@ const AssignTestForm = () => {
 
         <div className="mt-6 flex justify-end gap-3">
           <Button onClick={() => navigate("/packages")}>Cancel</Button>
-          <Button type="primary" onClick={handleSave}>
+          <Button type="primary" onClick={handleSave} loading={isLoading}>
             {"Assign Tests"}
           </Button>
         </div>

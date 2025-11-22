@@ -16,6 +16,7 @@ import PackageAssign from "./pages/PackageManagement/PackageAssign";
 import AssignTestForm from "./pages/Labmanagement/AssignTestFrom";
 import BookingList from "./pages/BookingManagement/BookingList";
 import BookingDetails from "./pages/BookingManagement/BookingDetails";
+import Inquiry from "./pages/Inquiry/Inquiry";
 
 export default function App() {
   return (
@@ -62,6 +63,7 @@ export default function App() {
             element={<BookingDetails />}
           />
           <Route index path="/profile-management" element={<UpdateProfile />} />
+          <Route index path="/inquiry" element={<Inquiry />} />
         </Route>
 
         {/* Fallback route */}

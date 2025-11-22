@@ -44,6 +44,15 @@ export const StaffApi = createApi({
       }),
       invalidatesTags: ["Staff"],
     }),
+    // Update/Avaliblility Staff
+    availabilityStaff: builder.mutation({
+      query: ({ id }) => ({
+        url: `user/toggle-availability/${id}`,
+        method: "PUT",
+        body: {},
+      }),
+      invalidatesTags: ["Staff"],
+    }),
 
     // Update Staff Status (block/unblock)
     updateStaffStatus: builder.mutation({
@@ -57,7 +66,7 @@ export const StaffApi = createApi({
 
     // Get All Assigned Staffs
     getStaffs: builder.query({
-      query: ({searchText, page, pageSize}) =>
+      query: ({ searchText, page, pageSize }) =>
         searchText && searchText.trim() !== ""
           ? `lab/list-lab-users?search=${searchText}`
           : `lab/list-lab-users`,
@@ -83,4 +92,5 @@ export const {
   useEditStaffMutation,
   useUpdateStaffStatusMutation,
   useUnassignedStaffMutation,
+  useAvailabilityStaffMutation
 } = StaffApi;

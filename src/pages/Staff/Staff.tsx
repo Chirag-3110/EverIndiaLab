@@ -23,9 +23,12 @@ import {
   useEditStaffMutation,
   useUpdateStaffStatusMutation,
   useUnassignedStaffMutation,
+  useAvailabilityStaffMutation,
 } from "../../redux/api/staffApi";
 import { formatDate } from "../../utils/utils";
 import { useAuth } from "../../context/AuthContext";
+import { CheckCircle, Trash2, XCircle } from "lucide-react";
+import { LoadingOutlined } from "@ant-design/icons";
 
 const { Option } = Select;
 
@@ -41,6 +44,8 @@ const Staff = () => {
   const [deleteUser] = useDeleteStaffMutation();
   const [updateUserStatus] = useUpdateStaffStatusMutation();
   const [unassignedStaff] = useUnassignedStaffMutation();
+  const [availabilityStaff, { isLoading: isAvailablity }] =
+    useAvailabilityStaffMutation();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
@@ -48,7 +53,7 @@ const Staff = () => {
   const [editingUser, setEditingUser] = useState<any>(null);
   const [imageFile, setImageFile] = useState<RcFile | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
+  const [loadingId, setLoadingId] = useState<string | null>(null);
   // console.log(imageFile, imagePreview);
 
   const handleSearchChange = (e: any) => {
@@ -92,16 +97,15 @@ const Staff = () => {
   };
 
   // Toggle Status
-  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
+  const handleToggleAvailability = async (id: string) => {
+    setLoadingId(id); // Start loading
     try {
-      await updateUserStatus({
-        id,
-        formdata: { status: !currentStatus },
-      }).unwrap();
-      toast.success("Status changed successfully!");
+      await availabilityStaff({ id }).unwrap();
+      toast.success("Availability updated successfully!");
     } catch {
-      toast.error("Failed to change status");
+      toast.error("Failed to update Availability");
     }
+    setLoadingId(null); // Stop loading
   };
 
   // Handle form submission for Add/Edit
@@ -186,6 +190,21 @@ const Staff = () => {
       ),
     },
     {
+      title: "Available",
+      dataIndex: "isAvailable",
+      key: "isAvailable",
+      filters: [
+        { text: "Available", value: true },
+        { text: "Unavailable", value: false },
+      ],
+      onFilter: (value, record) => record.isAvailable === value,
+      render: (isAvailable) => (
+        <Tag color={isAvailable ? "green" : "volcano"}>
+          {isAvailable ? "Available" : "Unavailable"}
+        </Tag>
+      ),
+    },
+    {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
@@ -199,10 +218,10 @@ const Staff = () => {
       key: "action",
       render: (_: any, record: any) => (
         <div style={{ display: "flex", gap: "8px" }}>
-          {/* <Button
+          <Button
             type="default"
             style={{
-              backgroundColor: record.status ? "#F56C6C" : "#67C23A",
+              backgroundColor: record.isAvailable ? "#F56C6C" : "#67C23A",
               color: "white",
               width: "30px",
               height: "30px",
@@ -211,49 +230,27 @@ const Staff = () => {
               justifyContent: "center",
               padding: 0,
             }}
-            onClick={() => handleToggleStatus(record._id, record.status)}
+            onClick={() => handleToggleAvailability(record._id)}
+            loading={loadingId === record._id} // <-- Spinner shows while loading
             icon={
-              record.status ? <XCircle size={16} /> : <CheckCircle size={16} />
+              loadingId === record._id ? (
+                <LoadingOutlined />
+              ) : record.isAvailable ? (
+                <XCircle size={16} />
+              ) : (
+                <CheckCircle size={16} />
+              )
             }
-          /> */}
-          {/* <Button
-            type="default"
-            onClick={() => openEditModal(record)}
-            style={{
-              backgroundColor: "#4096ff",
-              color: "white",
-              width: "30px",
-              height: "30px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 0,
-            }}
-          >
-            <SquarePen size={16} />
-          </Button> */}
+            disabled={loadingId === record._id} // Disable while loading
+          />
+
           <Popconfirm
             title="Are you sure to delete this Phlebotomist member?"
             onConfirm={() => handleDelete(record._id)}
             okText="Yes"
             cancelText="No"
           >
-            <Button
-              // style={{
-              //   backgroundColor: "red",
-              //   color: "white",
-              //   width: "30px",
-              //   height: "30px",
-              //   display: "flex",
-              //   alignItems: "center",
-              //   justifyContent: "center",
-              //   padding: 8,
-              // }}
-              danger
-              // icon={<Trash2 size={16} />}
-            >
-              Remove
-            </Button>
+            <Button danger icon={<Trash2 size={16} />}></Button>
           </Popconfirm>
         </div>
       ),

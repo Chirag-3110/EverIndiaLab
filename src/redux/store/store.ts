@@ -8,6 +8,7 @@ import { bookingApi } from "../api/bookingApi";
 import { notificationApi } from "../api/notificationApi";
 import { dashboardApi } from "../api/dasboardApi";
 import { masterPanelApi } from "../api/masterPanelApi";
+import { ticketApi } from "../api/ticketApi";
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     [notificationApi.reducerPath]: notificationApi.reducer,
     [dashboardApi.reducerPath]: dashboardApi.reducer,
     [masterPanelApi.reducerPath]: masterPanelApi.reducer,
+    [ticketApi.reducerPath]: ticketApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -32,5 +34,6 @@ export const store = configureStore({
       dashboardApi.middleware,
       masterPanelApi.middleware,
       bookingApi.middleware,
+      ticketApi.middleware,
     ]),
 });

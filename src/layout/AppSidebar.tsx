@@ -53,6 +53,7 @@ const navItems: NavItem[] = [
     name: "Phlebotomist",
     path: "/Staff",
   },
+
   {
     icon: <Package />,
     name: "Package Management",
@@ -68,6 +69,11 @@ const navItems: NavItem[] = [
     icon: <NotebookText />,
     name: "Booking Management",
     subItems: [{ name: "Booking", path: "/booking-list", pro: false }],
+  },
+  {
+    icon: <UsersRound />,
+    name: "Inquiry",
+    path: "/inquiry",
   },
 ];
 
@@ -115,22 +121,22 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-   const handleSubmenuToggle = (index: number) => {
-     // If clicking the same menu again → close it
-     if (openSubmenu === index) {
-       setOpenSubmenu(null);
-       return;
-     }
+  const handleSubmenuToggle = (index: number) => {
+    // If clicking the same menu again → close it
+    if (openSubmenu === index) {
+      setOpenSubmenu(null);
+      return;
+    }
 
-     // Otherwise, close any open dropdown and open the new one
-     setOpenSubmenu(index);
+    // Otherwise, close any open dropdown and open the new one
+    setOpenSubmenu(index);
 
-     // Automatically navigate to first child
-     const subItems = navItems[index]?.subItems;
-     if (subItems && subItems.length > 0 && subItems[0].path) {
-       navigate(subItems[0].path);
-     }
-   };
+    // Automatically navigate to first child
+    const subItems = navItems[index]?.subItems;
+    if (subItems && subItems.length > 0 && subItems[0].path) {
+      navigate(subItems[0].path);
+    }
+  };
 
   return (
     <aside

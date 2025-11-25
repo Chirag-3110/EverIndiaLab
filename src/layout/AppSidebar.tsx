@@ -1,328 +1,245 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  GridIcon,
-  TableIcon,
-  ChevronDownIcon,
-  HorizontaLDots,
-  UserIcon,
-  PaperPlaneIcon,
-} from "../icons";
-import { useSidebar } from "../context/SidebarContext";
-import {
-  BadgeIndianRupee,
-  Building2,
-  Hospital,
-  LogOut,
-  LogOutIcon,
-  NotebookPen,
-  NotebookText,
-  Package,
-  Settings,
-  TableProperties,
-  Ticket,
-  TvIcon,
-  User,
+  ChevronDown,
+  Grid2X2Icon,
+  NotebookPenIcon,
+  NotebookTextIcon,
+  Package2,
+  TablePropertiesIcon,
   UsersRound,
-  Warehouse,
+  UsersRoundIcon,
 } from "lucide-react";
+
+import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 
-type NavItem = {
-  name: string;
-  icon: React.ReactNode;
-  path?: string;
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
-};
-
-const navItems: NavItem[] = [
+const navItems: any = [
   {
-    icon: <GridIcon />,
     name: "Dashboard",
     path: "/",
+    icon: <Grid2X2Icon />,
+    permission: "view-dashboard",
   },
   {
-    icon: <TableProperties />,
     name: "Category Management",
     path: "/category-management",
+    icon: <TablePropertiesIcon />,
+    permission: "manage-category",
   },
-
   {
-    icon: <UsersRound />,
     name: "Phlebotomist",
-    path: "/Staff",
-  },
-
-  {
-    icon: <Package />,
-    name: "Package Management",
-    subItems: [{ name: "Packages", path: "/packages", pro: false }],
-  },
-
-  {
-    icon: <NotebookPen />,
-    name: "Test Management",
-    subItems: [{ name: "Test", path: "/test-form", pro: false }],
-  },
-  {
-    icon: <NotebookText />,
-    name: "Booking Management",
-    subItems: [{ name: "Booking", path: "/booking-list", pro: false }],
-  },
-  {
+    path: "/staff",
     icon: <UsersRound />,
+    permission: "manage-phlebotomist",
+  },
+  {
+    name: "Staff",
+    path: "/employee-staff",
+    icon: <UsersRound />,
+    permission: "manage-staff",
+  },
+
+  {
+    name: "Package Management",
+    icon: <Package2 />,
+    permission: "manage-package",
+    subItems: [{ name: "Packages", path: "/packages" }],
+  },
+  {
+    name: "Test Management",
+    icon: <NotebookPenIcon />,
+    permission: "manage-test",
+    subItems: [{ name: "Test", path: "/test-form" }],
+  },
+  {
+    name: "Booking Management",
+    icon: <NotebookTextIcon />,
+    permission: "manage-bookings",
+    subItems: [{ name: "Booking", path: "/booking-list" }],
+  },
+  {
     name: "Inquiry",
     path: "/inquiry",
+    icon: <UsersRoundIcon />,
+    permission: "manage-inquiry",
   },
 ];
 
-const AppSidebar: React.FC = () => {
-  const { logout } = useAuth();
+export default function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
-  const [openSubmenu, setOpenSubmenu] = useState<number | null>(null);
-  const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
-    {}
-  );
-  const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const { logout, accessPermissions } = useAuth();
+  const { isExpanded, isHovered, isMobileOpen, setIsHovered } = useSidebar();
+  const [openMenu, setOpenMenu] = useState(null);
+
+  const isOwner = accessPermissions.length === 0;
+
+  const permittedItems = isOwner
+    ? navItems
+    : navItems.filter(
+        (item) =>
+          !item.permission || accessPermissions.includes(item.permission)
+      );
+
+  const isActive = (path) => path && location.pathname === path;
+
+  /** Auto-open sub menu if current route matches */
+  useEffect(() => {
+    permittedItems.forEach((item, i) => {
+      if (item.subItems?.some((s) => isActive(s.path))) {
+        setOpenMenu(i);
+      }
+    });
+  }, [location.pathname]);
+
+  /** Redirect if route is not permitted */
+  useEffect(() => {
+    if (isOwner) return;
+
+    const allowed = permittedItems.flatMap((i) =>
+      i.subItems ? i.subItems.map((s) => s.path) : i.path
+    );
+
+    if (!allowed.includes(location.pathname)) {
+      const first = permittedItems[0];
+      const firstPath = first?.subItems?.[0]?.path || first?.path;
+      if (firstPath) navigate(firstPath, { replace: true });
+    }
+  }, [permittedItems, isOwner]);
+
+  const toggleMenu = (index) => {
+    if (openMenu === index) return setOpenMenu(null);
+    setOpenMenu(index);
+
+    const item = permittedItems[index];
+    if (item.subItems) navigate(item.subItems[0].path);
+  };
 
   const handleLogout = () => {
     logout();
+    toast.success("Logged out Successfully!");
     navigate("/signin");
-    toast.success("Logged out Successfully..!");
   };
 
-  const isActive = useCallback(
-    (path: string) => location.pathname === path,
-    [location.pathname]
-  );
-
-  useEffect(() => {
-    navItems.forEach((nav, index) => {
-      nav.subItems?.forEach((subItem) => {
-        if (isActive(subItem.path)) {
-          setOpenSubmenu(index);
-        }
-      });
-    });
-  }, [location, isActive]);
-
-  useEffect(() => {
-    if (openSubmenu !== null) {
-      const key = `${openSubmenu}`;
-      if (subMenuRefs.current[key]) {
-        setSubMenuHeight((prev) => ({
-          ...prev,
-          [key]: subMenuRefs.current[key]?.scrollHeight || 0,
-        }));
-      }
-    }
-  }, [openSubmenu]);
-
-  const handleSubmenuToggle = (index: number) => {
-    // If clicking the same menu again → close it
-    if (openSubmenu === index) {
-      setOpenSubmenu(null);
-      return;
-    }
-
-    // Otherwise, close any open dropdown and open the new one
-    setOpenSubmenu(index);
-
-    // Automatically navigate to first child
-    const subItems = navItems[index]?.subItems;
-    if (subItems && subItems.length > 0 && subItems[0].path) {
-      navigate(subItems[0].path);
-    }
-  };
+  const sidebarOpen = isExpanded || isHovered || isMobileOpen;
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
-        ${
-          isExpanded || isMobileOpen
-            ? "w-[290px]"
-            : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
-        }
-        ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0`}
+      className={`fixed top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r transition-all duration-300 z-50
+      ${sidebarOpen ? "w-[290px]" : "w-[90px]"}
+      ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Logo */}
-      <div
-        className={`py-8 flex ${
-          !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-        }`}
-      >
-        <Link to="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            // <img
-            //   className="dark:hidden"
-            //   src="/images/logo/logo.svg"
-            //   alt="Logo"
-            //   width={150}
-            //   height={40}
-            // />
-            <div className="flex items-center gap-2 text-primary font-bold text-xl">
-              {/* <Warehouse className="h-6 w-6 text-primary text-[#07868D]" /> */}
-
-              <img src="/logo.png" alt="" className="w-[180px]" />
-            </div>
+      {/* FULL FLEX LAYOUT */}
+      <div className="flex flex-col h-full">
+        {/* LOGO */}
+        <div className="py-6 px-4">
+          {sidebarOpen ? (
+            <img src="/logo.png" className="w-[180px]" />
           ) : (
-            // <img
-            //   src="/images/logo/logo-icon.svg"
-            //   alt="Logo"
-            //   width={32}
-            //   height={32}
-            // />
-            <div className="flex items-center gap-2 text-primary font-bold text-xl">
-              <img src="/lo.png" alt="" className="w-[40px]" />
-            </div>
+            <img src="/lo.png" className="w-[40px]" />
           )}
-        </Link>
-      </div>
+        </div>
 
-      {/* Main Menu */}
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="h-[650px] flex flex-col">
-          <h2
-            className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-              !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-            }`}
-          >
-            {isExpanded || isHovered || isMobileOpen ? (
-              "Menu"
-            ) : (
-              <HorizontaLDots className="size-6" />
-            )}
+        {/* MENU SCROLLABLE AREA */}
+        <nav className="px-4 flex-1 overflow-y-auto no-scrollbar">
+          <h2 className="text-xs uppercase text-gray-400 mb-4">
+            {sidebarOpen ? "Menu" : "..."}
           </h2>
-          <ul className="flex flex-col gap-4">
-            {navItems.map((nav, index) => (
-              <li key={nav.name}>
-                {nav.subItems ? (
-                  <button
-                    onClick={() => handleSubmenuToggle(index)}
-                    className={`menu-item group ${
-                      openSubmenu === index
-                        ? "menu-item-active"
-                        : "menu-item-inactive"
-                    } cursor-pointer ${
-                      !isExpanded && !isHovered
-                        ? "lg:justify-center"
-                        : "lg:justify-start"
-                    }`}
-                  >
-                    <span
-                      className={`menu-item-icon-size ${
-                        openSubmenu === index
-                          ? "menu-item-icon-active"
-                          : "menu-item-icon-inactive"
-                      }`}
-                    >
-                      {nav.icon}
-                    </span>
-                    {(isExpanded || isHovered || isMobileOpen) && (
-                      <span className="menu-item-text">{nav.name}</span>
-                    )}
-                    {(isExpanded || isHovered || isMobileOpen) && (
-                      <ChevronDownIcon
-                        className={`ml-auto w-5 h-5 transition-transform duration-200 ${
-                          openSubmenu === index
-                            ? "rotate-180 text-brand-500"
-                            : ""
-                        }`}
-                      />
-                    )}
-                  </button>
-                ) : (
-                  nav.path && (
-                    <Link
-                      to={nav.path}
+
+          <ul className="space-y-3">
+            {permittedItems.map((item, index) => (
+              <li key={index}>
+                {item.subItems ? (
+                  <>
+                    {/* Parent Item */}
+                    <button
+                      onClick={() => toggleMenu(index)}
                       className={`menu-item group ${
-                        isActive(nav.path)
+                        openMenu === index
                           ? "menu-item-active"
                           : "menu-item-inactive"
                       }`}
                     >
-                      <span
-                        className={`menu-item-icon-size ${
-                          isActive(nav.path)
-                            ? "menu-item-icon-active"
-                            : "menu-item-icon-inactive"
+                      <span className="menu-item-icon-size">{item.icon}</span>
+                      {sidebarOpen && <span>{item.name}</span>}
+                      {sidebarOpen && (
+                        <ChevronDown
+                          className={`ml-auto transition-transform ${
+                            openMenu === index ? "rotate-180" : ""
+                          }`}
+                        />
+                      )}
+                    </button>
+
+                    {/* Dropdown */}
+                    {sidebarOpen && (
+                      <ul
+                        className={`ml-10 mt-2 space-y-1 transition-all overflow-hidden ${
+                          openMenu === index ? "max-h-[500px]" : "max-h-0"
                         }`}
                       >
-                        {nav.icon}
-                      </span>
-                      {(isExpanded || isHovered || isMobileOpen) && (
-                        <span className="menu-item-text">{nav.name}</span>
-                      )}
-                    </Link>
-                  )
-                )}
-                {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
-                  <div
-                    ref={(el) => {
-                      subMenuRefs.current[`${index}`] = el;
-                    }}
-                    className="overflow-hidden transition-all duration-300"
-                    style={{
-                      height:
-                        openSubmenu === index
-                          ? `${subMenuHeight[`${index}`]}px`
-                          : "0px",
-                    }}
+                        {item.subItems.map((sub) => (
+                          <li key={sub.path}>
+                            <Link
+                              to={sub.path}
+                              className={`menu-dropdown-item ${
+                                isActive(sub.path)
+                                  ? "menu-dropdown-item-active"
+                                  : "menu-dropdown-item-inactive"
+                              }`}
+                            >
+                              {sub.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    to={item.path}
+                    className={`menu-item group ${
+                      isActive(item.path)
+                        ? "menu-item-active"
+                        : "menu-item-inactive"
+                    }`}
                   >
-                    <ul className="mt-2 space-y-1 ml-9">
-                      {nav.subItems.map((subItem) => (
-                        <li key={subItem.name}>
-                          <Link
-                            to={subItem.path}
-                            className={`menu-dropdown-item ${
-                              isActive(subItem.path)
-                                ? "menu-dropdown-item-active"
-                                : "menu-dropdown-item-inactive"
-                            }`}
-                          >
-                            {subItem.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                    <span className="menu-item-icon-size">{item.icon}</span>
+                    {sidebarOpen && <span>{item.name}</span>}
+                  </Link>
                 )}
               </li>
             ))}
           </ul>
-          <div className="mt-auto px-0">
-            <button
-              onClick={handleLogout}
-              className={`menu-item border mb-4 group cursor-pointer w-full flex items-center gap-3 px-4 py-2 rounded-lg ${
-                isExpanded || isHovered || isMobileOpen
-                  ? "justify-start text-gray-900 hover:bg-[#FF0800] hover:text-white transition-all"
-                  : "justify-center"
-              }`}
-            >
-              <LogOutIcon
-                className={`menu-item-icon-size ${
-                  isExpanded || isHovered || isMobileOpen
-                    ? "text-gray-900 "
-                    : "text-gray-800"
-                }`}
-              />
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <span className="menu-item-text">Logout</span>
-              )}
-            </button>
-          </div>
         </nav>
+
+        {/* LOGOUT ALWAYS AT BOTTOM */}
+        <div className="p-4 border-t">
+          <button
+            onClick={handleLogout}
+            className={`menu-item w-full border rounded-lg hover:bg-red-500 hover:text-white transition 
+            ${sidebarOpen ? "justify-start" : "justify-center"}`}
+          >
+            <span className="menu-item-icon-size">
+              <svg
+                className="size-6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                viewBox="0 0 24 24"
+              >
+                <path d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
+                <path d="M18 9l3 3m0 0l-3 3m3-3H9" />
+              </svg>
+            </span>
+            {sidebarOpen && <span>Logout</span>}
+          </button>
+        </div>
       </div>
     </aside>
   );
-};
-
-export default AppSidebar;
+}

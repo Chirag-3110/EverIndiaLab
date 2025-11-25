@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { useGetAccessPermissionQuery } from "../redux/api/accessPermissionApi";
 
 const AuthContext = createContext<any>(null);
 
@@ -8,6 +9,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any>(null);
+  const [staff, setStaff] = useState<any>(null);
 
   // ✅ Login: store user + token
   function login(data: { user: any; token: string }) {
@@ -36,19 +38,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem("l_t_K");
     const storedUser = localStorage.getItem("lab");
+    const staffUser = localStorage.getItem("staff");
 
     if (token && storedUser) {
       setUser(JSON.parse(storedUser));
+
+      if (staffUser) {
+        setStaff(JSON.parse(staffUser) || []);
+      } else {
+        setStaff([]);
+      }
     } else {
       setUser(null);
+      setStaff([]);
     }
   }, []);
 
   const isAuthenticated = !!localStorage.getItem("l_t_K");
 
+  const accessPermissions = staff?.permissions || [];
+  console.log(accessPermissions);
+
   return (
     <AuthContext.Provider
-      value={{ user, login, logout, isAuthenticated, updateUser, setUser }}
+      value={{
+        user,
+        setStaff,
+        login,
+        logout,
+        isAuthenticated,
+        updateUser,
+        setUser,
+        accessPermissions,
+      }}
     >
       {children}
     </AuthContext.Provider>

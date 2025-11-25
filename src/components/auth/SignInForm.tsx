@@ -16,7 +16,7 @@ export default function OTPLoginForm() {
   const timerRef = useRef(null);
   const [showAccessDenied, setShowAccessDenied] = useState(false);
 
-  const { login, setUser } = useAuth();
+  const { login, setUser, setStaff } = useAuth();
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
@@ -101,16 +101,20 @@ export default function OTPLoginForm() {
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.message || "Invalid OTP");
-      const lab = data?.response?.lab;
+      const lab =
+        data?.response?.lab || data?.response?.employee?.connectedLabId;
+      const employee = data?.response?.employee;
       const token = data?.response?.token;
-      if (!lab || !token) {
+      if (!token) {
         setShowAccessDenied(true);
         return;
       }
 
       // login({ lab, token });
       setUser(lab);
+      setStaff(employee || []);
       localStorage.setItem("lab", JSON.stringify(lab));
+      localStorage.setItem("staff", JSON.stringify(employee || []));
       localStorage.setItem("l_t_K", token);
       navigate("/");
       toast.success("Logged In Successfully!");

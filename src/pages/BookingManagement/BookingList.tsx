@@ -58,12 +58,13 @@ const BookingList = () => {
   const [markAsCompleteBooking, { isLoading: isSubmiting }] =
     useMarkAsCompleteBookingMutation();
 
-  const { data, isLoading } = useGetBookingQuery({
+  const { data, isLoading, isError, error } = useGetBookingQuery({
     searchText,
     page,
     pageSize,
     id: user?._id,
   });
+  console.log(error);
 
   const labBookings = data?.response?.data ?? [];
 
@@ -180,6 +181,11 @@ const BookingList = () => {
       title: "Booking ID",
       dataIndex: "bookingId",
       key: "bookingId",
+      render: (_: any, record: any) => (
+        <span onClick={() => navigate(`/booking/details/${record._id}`)}>
+          {record?.bookingId}
+        </span>
+      ),
     },
     {
       title: "Customer Name",

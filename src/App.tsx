@@ -17,6 +17,7 @@ import AssignTestForm from "./pages/Labmanagement/AssignTestFrom";
 import BookingList from "./pages/BookingManagement/BookingList";
 import BookingDetails from "./pages/BookingManagement/BookingDetails";
 import Inquiry from "./pages/Inquiry/Inquiry";
+import EmployeeStaffManagement from "./pages/EmployeeStaffManagement/EmployeeStaffManagement";
 
 export default function App() {
   return (
@@ -44,6 +45,11 @@ export default function App() {
           />{" "}
           {/* Staff Management */}
           <Route index path="/Staff" element={<Staff />} />
+          <Route
+            index
+            path="/employee-staff"
+            element={<EmployeeStaffManagement />}
+          />
           {/* Test Management */}
           <Route index path="/test-form" element={<TestFormManager />} />
           <Route

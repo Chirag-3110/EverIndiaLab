@@ -4,11 +4,15 @@ import { useSidebar } from "../context/SidebarContext";
 import { Badge, BellIcon, User, Warehouse } from "lucide-react";
 import { useGetnotificationQuery } from "../redux/api/notificationApi";
 import NotificationsModal from "../components/NotificationsModal/NotificationsModal";
+import { useAuth } from "../context/AuthContext";
 
 const AppHeader: React.FC = () => {
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
   const navigate = useNavigate();
-    const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { logout, accessPermissions } = useAuth();
+
+  const isOwner = accessPermissions.length === 0;
 
   const { data, isLoading } = useGetnotificationQuery({});
   const notifications = data?.response?.notifications || [];
@@ -85,13 +89,15 @@ const AppHeader: React.FC = () => {
               )}
             </div>
           </div>
-          <button
-            onClick={() => navigate("/profile-management")}
-            className="flex items-center justify-center w-10 h-10 text-white bg-[#07868D] rounded-full hover:opacity-90 transition"
-            title="Profile"
-          >
-            <User className="h-5 w-5 text-white" />
-          </button>
+          {isOwner && (
+            <button
+              onClick={() => navigate("/profile-management")}
+              className="flex items-center justify-center w-10 h-10 text-white bg-[#07868D] rounded-full hover:opacity-90 transition"
+              title="Profile"
+            >
+              <User className="h-5 w-5 text-white" />
+            </button>
+          )}
         </div>
       </div>
       <NotificationsModal open={open} onClose={() => setOpen(false)} />

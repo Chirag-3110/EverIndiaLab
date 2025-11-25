@@ -11,8 +11,10 @@ import StatisticsChart from "../../components/ecommerce/StatisticsChart";
 import { useGetdashboardQuery } from "../../redux/api/dasboardApi";
 import { Spin } from "antd";
 import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router";
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data, isLoading } = useGetdashboardQuery({});
   const stats = data?.response?.data || {};
@@ -74,8 +76,20 @@ export default function AdminDashboard() {
                   </span>
                 </div>
               </div>
-
               <div className="p-4 bg-white rounded-lg shadow flex items-center gap-4">
+                <UserCheck className="w-10 h-10 text-red-500" />
+                <div>
+                  <h2 className="text-lg font-semibold">Total Patients</h2>
+                  <span className="text-xl font-bold">
+                    {stats?.totalUsers || 0}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                className="p-4 bg-white rounded-lg shadow flex items-center gap-4"
+                onClick={() => navigate("/employee-staff")}
+              >
                 <UserCheck className="w-10 h-10 text-green-500" />
                 <div>
                   <h2 className="text-lg font-semibold">New Staff</h2>
@@ -88,14 +102,34 @@ export default function AdminDashboard() {
               <div className="p-4 bg-white rounded-lg shadow flex items-center gap-4">
                 <Activity className="w-10 h-10 text-blue-500" />
                 <div>
-                  <h2 className="text-lg font-semibold">Tests Conducted</h2>
+                  <h2 className="text-lg font-semibold">
+                    {" "}
+                    Tests Conducted{" "}
+                    <span className="text-xs text-gray-600">(Today)</span>
+                  </h2>
                   <span className="text-xl font-bold">
                     {stats?.testsConductedToday || 0}
                   </span>
                 </div>
               </div>
-
               <div className="p-4 bg-white rounded-lg shadow flex items-center gap-4">
+                <Activity className="w-10 h-10 text-blue-500" />
+                <div>
+                  <h2 className="text-lg font-semibold">
+                    {" "}
+                    Total Tests Conducted{" "}
+                    <span className="text-xs text-gray-600">(Today)</span>
+                  </h2>
+                  <span className="text-xl font-bold">
+                    {stats?.totalConductedToday || 0}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                className="p-4 bg-white rounded-lg shadow flex items-center gap-4"
+                onClick={() => navigate("/booking-list")}
+              >
                 <CalendarCheck className="w-10 h-10 text-purple-500" />
                 <div>
                   <h2 className="text-lg font-semibold">Upcoming Bookings</h2>

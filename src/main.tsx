@@ -15,15 +15,15 @@ import { store } from "./redux/store/store";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
-      <ThemeProvider>
-        <Provider store={store}>
+    <Provider store={store}>
+      <AuthProvider>
+        <ThemeProvider>
           <AppWrapper>
             <CustomToastContainer />
             <App />
           </AppWrapper>
-        </Provider>
-      </ThemeProvider>
-    </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </Provider>
   </StrictMode>
 );

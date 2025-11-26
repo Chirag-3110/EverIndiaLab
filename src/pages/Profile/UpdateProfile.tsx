@@ -3,8 +3,10 @@ import { Card, Form, Input, Button } from "antd";
 import { toast } from "react-toastify";
 import { useUpdateUserProfileMutation } from "../../redux/api/profileApi";
 import { useGetlabDetailsQuery } from "../../redux/api/categoryApi";
-import { useJsApiLoader, Libraries } from "@react-google-maps/api";
+import { useJsApiLoader } from "@react-google-maps/api";
 
+declare const google: any;
+type Libraries = ("places" | "drawing" | "geometry")[];
 const libs: Libraries = ["places"];
 
 export default function UpdateProfile() {
@@ -46,7 +48,7 @@ export default function UpdateProfile() {
         lng: lab.longitude || 0,
       });
 
-      setAddressSelectedByAutocomplete(true); // existing address is valid
+      setAddressSelectedByAutocomplete(true);
     }
   }, [labDetail]);
 
@@ -80,7 +82,6 @@ export default function UpdateProfile() {
   }, [isLoaded]);
 
   const handleSubmit = async (values: any) => {
-    // VALIDATION: Prevent pasted/typed address
     if (
       !addressSelectedByAutocomplete ||
       selectedLocation.lat === 0 ||
@@ -135,7 +136,6 @@ export default function UpdateProfile() {
               placeholder="Search address"
               ref={addressRef}
               onChange={() => {
-                // User manually typed → not valid
                 setAddressSelectedByAutocomplete(false);
                 setSelectedLocation({ lat: 0, lng: 0 });
               }}

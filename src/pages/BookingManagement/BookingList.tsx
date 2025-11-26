@@ -182,7 +182,10 @@ const BookingList = () => {
       dataIndex: "bookingId",
       key: "bookingId",
       render: (_: any, record: any) => (
-        <span onClick={() => navigate(`/booking/details/${record._id}`)}>
+        <span
+          onClick={() => navigate(`/booking/details/${record._id}`)}
+          className="text-blue-700 underline "
+        >
           {record?.bookingId}
         </span>
       ),

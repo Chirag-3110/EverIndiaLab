@@ -3,11 +3,9 @@ import { Card, Form, Input, Button } from "antd";
 import { toast } from "react-toastify";
 import { useUpdateUserProfileMutation } from "../../redux/api/profileApi";
 import { useGetlabDetailsQuery } from "../../redux/api/categoryApi";
-import { useJsApiLoader } from "@react-google-maps/api";
+import { loadGoogleMaps } from "../../utils/loadGoogleMaps";
 
 declare const google: any;
-type Libraries = ("places" | "drawing" | "geometry")[];
-const libs: Libraries = ["places"];
 
 export default function UpdateProfile() {
   const [form] = Form.useForm();
@@ -25,11 +23,6 @@ export default function UpdateProfile() {
   const { data: labDetail } = useGetlabDetailsQuery({});
   const [updateUserProfile, { isLoading: updating }] =
     useUpdateUserProfileMutation();
-
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_MAP_KEY,
-    libraries: libs,
-  });
 
   // Prefill
   useEffect(() => {
@@ -52,34 +45,40 @@ export default function UpdateProfile() {
     }
   }, [labDetail]);
 
-  // Google Autocomplete
+  // Google Autocomplete Loader
   useEffect(() => {
-    if (isLoaded && addressRef.current?.input) {
-      const autocomplete = new google.maps.places.Autocomplete(
-        addressRef.current.input,
-        {
-          fields: ["formatted_address", "geometry"],
-        }
-      );
+    loadGoogleMaps(import.meta.env.VITE_MAP_KEY, ["places"]).then(() => {
+      initAutocomplete();
+    });
+  }, []);
 
-      autocomplete.addListener("place_changed", () => {
-        const place = autocomplete.getPlace();
+  const initAutocomplete = () => {
+    if (!addressRef.current?.input || !window.google) return;
 
-        if (!place.geometry) return;
+    const autocomplete = new google.maps.places.Autocomplete(
+      addressRef.current.input,
+      {
+        fields: ["formatted_address", "geometry"],
+      }
+    );
 
-        setAddressSelectedByAutocomplete(true);
+    autocomplete.addListener("place_changed", () => {
+      const place = autocomplete.getPlace();
 
-        setSelectedLocation({
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng(),
-        });
+      if (!place.geometry) return;
 
-        form.setFieldsValue({
-          address: place.formatted_address,
-        });
+      setAddressSelectedByAutocomplete(true);
+
+      setSelectedLocation({
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng(),
       });
-    }
-  }, [isLoaded]);
+
+      form.setFieldsValue({
+        address: place.formatted_address,
+      });
+    });
+  };
 
   const handleSubmit = async (values: any) => {
     if (

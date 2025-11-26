@@ -3,9 +3,16 @@ import { Card, Form, Input, Button } from "antd";
 import { toast } from "react-toastify";
 import { useUpdateUserProfileMutation } from "../../redux/api/profileApi";
 import { useGetlabDetailsQuery } from "../../redux/api/categoryApi";
-import { loadGoogleMaps } from "../../utils/loadGoogleMaps";
+import { useJsApiLoader } from "@react-google-maps/api";
 
-declare const google: any;
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
+type Libraries = ("places" | "drawing" | "geometry")[];
+const libs: Libraries = ["places"];
 
 export default function UpdateProfile() {
   const [form] = Form.useForm();
@@ -23,6 +30,11 @@ export default function UpdateProfile() {
   const { data: labDetail } = useGetlabDetailsQuery({});
   const [updateUserProfile, { isLoading: updating }] =
     useUpdateUserProfileMutation();
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_MAP_KEY,
+    libraries: libs,
+  });
 
   // Prefill
   useEffect(() => {
@@ -45,17 +57,17 @@ export default function UpdateProfile() {
     }
   }, [labDetail]);
 
-  // Google Autocomplete Loader
+  // Google Autocomplete
   useEffect(() => {
-    loadGoogleMaps(import.meta.env.VITE_MAP_KEY, ["places"]).then(() => {
-      initAutocomplete();
-    });
-  }, []);
+    if (
+      !isLoaded ||
+      typeof window === "undefined" ||
+      !window.google ||
+      !addressRef.current?.input
+    )
+      return;
 
-  const initAutocomplete = () => {
-    if (!addressRef.current?.input || !window.google) return;
-
-    const autocomplete = new google.maps.places.Autocomplete(
+    const autocomplete = new window.google.maps.places.Autocomplete(
       addressRef.current.input,
       {
         fields: ["formatted_address", "geometry"],
@@ -64,7 +76,6 @@ export default function UpdateProfile() {
 
     autocomplete.addListener("place_changed", () => {
       const place = autocomplete.getPlace();
-
       if (!place.geometry) return;
 
       setAddressSelectedByAutocomplete(true);
@@ -78,7 +89,7 @@ export default function UpdateProfile() {
         address: place.formatted_address,
       });
     });
-  };
+  }, [isLoaded]);
 
   const handleSubmit = async (values: any) => {
     if (

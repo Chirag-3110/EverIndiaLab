@@ -15,6 +15,7 @@ export default function OTPLoginForm() {
   const [resendTimer, setResendTimer] = useState(0);
   const timerRef = useRef(null);
   const [showAccessDenied, setShowAccessDenied] = useState(false);
+  const [reqId, setReqId] = useState("");
 
   const { login, setUser, setStaff } = useAuth();
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ export default function OTPLoginForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to send OTP");
+      setReqId(data?.response?.reqId || "");
       toast.success("OTP sent to your phone!");
       setStep(2);
       setResendTimer(30);
@@ -72,6 +74,7 @@ export default function OTPLoginForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to resend OTP");
+      setReqId(data?.response?.reqId || "");
       toast.success("OTP resent!");
       setResendTimer(30);
     } catch (err) {
@@ -96,7 +99,7 @@ export default function OTPLoginForm() {
       const res = await fetch(`${baseUrl}lab/verify-otp-lab`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phoneNumber, otp: otpValue }),
+        body: JSON.stringify({ phoneNumber, otp: otpValue, reqId }),
       });
       const data = await res.json();
 

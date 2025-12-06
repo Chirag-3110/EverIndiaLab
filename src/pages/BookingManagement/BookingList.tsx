@@ -208,7 +208,7 @@ const BookingList = () => {
           : "";
         return `${dateStr}${slotStr}`;
       },
-      minWidth: 250,
+      minWidth: 150,
     },
 
     // {
@@ -216,12 +216,12 @@ const BookingList = () => {
     //   dataIndex: ["assignedLabId", "name"],
     //   key: "assignedLabId",
     // },
-    { title: "Payment Type", dataIndex: "paymentType", key: "paymentType" },
-    {
-      title: "Collection Type",
-      dataIndex: ["amount", "collectiontype"],
-      key: "collectiontype",
-    },
+    // { title: "Payment Type", dataIndex: "paymentType", key: "paymentType" },
+    // {
+    //   title: "Collection Type",
+    //   dataIndex: ["amount", "collectiontype"],
+    //   key: "collectiontype",
+    // },
     {
       title: "Total Amount",
       dataIndex: ["amount", "finalAmount"],
@@ -248,12 +248,12 @@ const BookingList = () => {
       key: "addressId",
       render: (value) => {
         if (!value) return "--";
-        const maxLength = 80;
+        const maxLength = 50;
         return value.length > maxLength
           ? value.slice(0, maxLength) + "..."
           : value;
       },
-      minWidth: 280,
+      minWidth: 200,
     },
     {
       title: "Created Date",

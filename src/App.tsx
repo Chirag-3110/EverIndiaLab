@@ -18,6 +18,7 @@ import BookingList from "./pages/BookingManagement/BookingList";
 import BookingDetails from "./pages/BookingManagement/BookingDetails";
 import Inquiry from "./pages/Inquiry/Inquiry";
 import EmployeeStaffManagement from "./pages/EmployeeStaffManagement/EmployeeStaffManagement";
+import StaffDetails from "./pages/Staff/StaffDetails";
 
 export default function App() {
   return (
@@ -45,6 +46,8 @@ export default function App() {
           />{" "}
           {/* Staff Management */}
           <Route index path="/Staff" element={<Staff />} />
+          <Route index path="/staff-details/:id" element={<StaffDetails />} />
+
           <Route
             index
             path="/employee-staff"

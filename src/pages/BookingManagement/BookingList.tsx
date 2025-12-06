@@ -135,7 +135,8 @@ const BookingList = () => {
           ?.toLowerCase()
           .includes(searchText.toLowerCase());
 
-      const matchesStatus = !statusFilter || item.status === statusFilter;
+      const matchesStatus =
+        !statusFilter || statusFilter.length === 0 || statusFilter.includes(item.status);
       const matchesPayment =
         !paymentTypeFilter || item.paymentType === paymentTypeFilter;
       const matchesCollection =
@@ -228,6 +229,20 @@ const BookingList = () => {
       render: (amount: number) => `₹${amount}`,
     },
     {
+      title: "Report Uploaded",
+      key: "items",
+      filters: [
+        { text: "Yes", value: true },
+        { text: "No", value: false },
+      ],
+      onFilter: (value, record) => {
+        const hasReport = record?.items?.[0]?.reportFiles?.length > 0;
+        return value === hasReport;
+      },
+      render: (_: any, record: any) =>
+        record?.items?.[0]?.reportFiles?.length > 0 ? "Yes" : "No",
+    },
+    {
       title: "Address",
       dataIndex: ["addressId", "description"],
       key: "addressId",
@@ -264,9 +279,8 @@ const BookingList = () => {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => (
-        <Tag color={bookingStatusColors[status] || "default"}>{status}</Tag>
-      ),
+      render: (status: string) => <Tag color={bookingStatusColors[status] || "default"}>{status == "temporary_completed" ? "Sample Collected" : status == "in_route" ? "On the Way" : status}</Tag>,
+
     },
 
     {
@@ -284,10 +298,10 @@ const BookingList = () => {
               <EyeIcon size={18} />
             </Button>
             {record?.status !== "completed" &&
-            record?.status !== "cancelled" &&
-            record?.paymentType === "cash" &&
-            record?.paymentStatus === "paid" &&
-            allReportsUploaded ? (
+              record?.status !== "cancelled" &&
+              record?.paymentType === "cash" &&
+              record?.paymentStatus === "paid" &&
+              allReportsUploaded ? (
               <Button
                 onClick={() => handleCashPayment(record)}
                 style={{
@@ -296,16 +310,16 @@ const BookingList = () => {
                   borderColor: "#27ae60",
                   fontWeight: "600",
                 }}
-                // loading={isSubmiting}
+              // loading={isSubmiting}
               >
                 Mark As Completed
               </Button>
             ) : null}
 
             {record?.paymentType === "online" &&
-            record?.status !== "completed" &&
-            record?.status !== "cancelled" &&
-            allReportsUploaded ? (
+              record?.status !== "completed" &&
+              record?.status !== "cancelled" &&
+              allReportsUploaded ? (
               <Button
                 onClick={() => handleOnlinePayment(record)}
                 style={{
@@ -356,21 +370,18 @@ const BookingList = () => {
             value={statusFilter}
             onChange={setStatusFilter}
             style={{ width: 150 }}
+            mode="multiple"
             options={[
               { value: "pending", label: "Pending" },
               { value: "completed", label: "Completed" },
               { value: "cancelled", label: "Cancelled" },
-              { value: "in_progress", label: "In Progress" },
-              { value: "in_route", label: "In Route" },
-              { value: "confirmed", label: "Confirmed" },
+              // { value: "in_progress", label: "In Progress" },
+              { value: "in_route", label: "On the Way" },
+              // { value: "confirmed", label: "Confirmed" },
               { value: "assigned", label: "Assigned" },
-              { value: "started", label: "Started" },
-              { value: "test_collected", label: "Test Collected" },
-              { value: "cancelled", label: "Cancelled" },
-              {
-                value: "temporary_completed",
-                label: "Temporary Completed",
-              },
+              // { value: "started", label: "Started" },
+              // { value: "test_collected", label: "Test Collected" },
+              { value: "temporary_completed", label: "Sample Collected" },
             ]}
           />
         </div>

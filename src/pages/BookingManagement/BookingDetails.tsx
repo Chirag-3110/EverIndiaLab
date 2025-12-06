@@ -153,7 +153,7 @@ const BookingDetails = () => {
       render: (_, record) => (
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           {Array.isArray(record.reportFiles) &&
-          record.reportFiles.length > 0 ? (
+            record.reportFiles.length > 0 ? (
             <div className="flex flex-col gap-1">
               {record.reportFiles.map((fileUrl, index) => (
                 <a
@@ -280,11 +280,10 @@ const BookingDetails = () => {
         <div className="flex justify-end">
           {/* <label htmlFor="">Payment Status:</label> */}
           <p
-            className={`font-bold uppercase px-2 py-1 rounded ${
-              booking?.response?.data?.paymentStatus === "paid"
-                ? "text-green-700 bg-green-100"
-                : "text-red-700 bg-red-100"
-            }`}
+            className={`font-bold uppercase px-2 py-1 rounded ${booking?.response?.data?.paymentStatus === "paid"
+              ? "text-green-700 bg-green-100"
+              : "text-red-700 bg-red-100"
+              }`}
           >
             {booking?.response?.data?.paymentStatus}
           </p>
@@ -347,7 +346,8 @@ const BookingDetails = () => {
                   "default"
                 }
               >
-                {booking?.response?.data.status}
+                {booking?.response?.data?.status == "temporary_completed" ? "Sample Collected" : booking?.response?.data?.status == "in_route" ? "On the Way" : booking?.response?.data?.status}
+
               </Tag>
             </Descriptions.Item>
 
@@ -443,10 +443,10 @@ const BookingDetails = () => {
           />
           <div className="mt-8 flex justify-end">
             {booking?.response?.data?.status !== "completed" &&
-            booking?.response?.data?.status !== "cancelled" &&
-            booking?.response?.data?.paymentType === "cash" &&
-            booking?.response?.data?.paymentStatus === "paid" &&
-            allReportsUploaded ? (
+              booking?.response?.data?.status !== "cancelled" &&
+              booking?.response?.data?.paymentType === "cash" &&
+              booking?.response?.data?.paymentStatus === "paid" &&
+              allReportsUploaded ? (
               <Button
                 onClick={() => handleCashPayment(booking?.response?.data)}
                 style={{
@@ -461,9 +461,9 @@ const BookingDetails = () => {
               </Button>
             ) : null}
             {booking?.response?.data?.paymentType === "online" &&
-            booking?.response?.data?.status !== "completed" &&
-            booking?.response?.data?.status !== "cancelled" &&
-            allReportsUploaded ? (
+              booking?.response?.data?.status !== "completed" &&
+              booking?.response?.data?.status !== "cancelled" &&
+              allReportsUploaded ? (
               <Button
                 onClick={() => handleOnlinePayment(booking?.response?.data)}
                 style={{
@@ -488,7 +488,7 @@ const BookingDetails = () => {
                 }}
                 loading={isPaying}
               >
-                Mark As Paid
+                Sample Received & Mark as Paid
               </Button>
             )}
           </div>
@@ -496,64 +496,64 @@ const BookingDetails = () => {
 
         {booking?.response?.data.amount.collectiontype ===
           "Home Collection" && (
-          <Tabs.TabPane tab="Staff" key="4">
-            <Descriptions bordered column={1} size="small">
-              <Descriptions.Item label="Assigned Staff">
-                {booking?.response?.data.assignedStaffId?.name ||
-                  "Not assigned"}
-              </Descriptions.Item>
-              <Descriptions.Item label="Staff Phone">
-                {booking?.response?.data.assignedStaffId?.phoneNumber || "-"}
-              </Descriptions.Item>
-            </Descriptions>
+            <Tabs.TabPane tab="Staff" key="4">
+              <Descriptions bordered column={1} size="small">
+                <Descriptions.Item label="Assigned Staff">
+                  {booking?.response?.data.assignedStaffId?.name ||
+                    "Not assigned"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Staff Phone">
+                  {booking?.response?.data.assignedStaffId?.phoneNumber || "-"}
+                </Descriptions.Item>
+              </Descriptions>
 
-            <div className="mt-4">
-              <Form form={form} layout="vertical" onFinish={handleSave}>
-                <h3 className="font-semibold mb-2">Select Staff</h3>
+              <div className="mt-4">
+                <Form form={form} layout="vertical" onFinish={handleSave}>
+                  <h3 className="font-semibold mb-2">Select Staff</h3>
 
-                <Form.Item
-                  name="assignedStaffId"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select a staff member!",
-                    },
-                  ]}
-                >
-                  <Select
-                    placeholder="Select a staff member"
-                    showSearch
-                    optionFilterProp="children"
-                    allowClear
-                    filterOption={(input, option) => {
-                      const label = String(option?.children || "");
-                      return label.toLowerCase().includes(input.toLowerCase());
-                    }}
-                    onChange={(value) => setSelectedStaff(value)}
+                  <Form.Item
+                    name="assignedStaffId"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please select a staff member!",
+                      },
+                    ]}
                   >
-                    {staffList.map((staff) => (
-                      <Select.Option key={staff._id} value={staff._id}>
-                        {staff.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
+                    <Select
+                      placeholder="Select a staff member"
+                      showSearch
+                      optionFilterProp="children"
+                      allowClear
+                      filterOption={(input, option) => {
+                        const label = String(option?.children || "");
+                        return label.toLowerCase().includes(input.toLowerCase());
+                      }}
+                      onChange={(value) => setSelectedStaff(value)}
+                    >
+                      {staffList.map((staff) => (
+                        <Select.Option key={staff._id} value={staff._id}>
+                          {staff.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
 
-                <div className="mt-6 flex justify-end gap-3">
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    loading={isAssigning}
-                  >
-                    {!booking?.response?.data?.assignedStaffId
-                      ? " Assign Staff"
-                      : "Edit Staff"}
-                  </Button>
-                </div>
-              </Form>
-            </div>
-          </Tabs.TabPane>
-        )}
+                  <div className="mt-6 flex justify-end gap-3">
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      loading={isAssigning}
+                    >
+                      {!booking?.response?.data?.assignedStaffId
+                        ? " Assign Staff"
+                        : "Edit Staff"}
+                    </Button>
+                  </div>
+                </Form>
+              </div>
+            </Tabs.TabPane>
+          )}
       </Tabs>
 
       <Modal

@@ -24,7 +24,10 @@ export const StaffApi = createApi({
       }),
       invalidatesTags: ["Staff"],
     }),
-
+    getDetailsStaffs: builder.query<any, String>({
+      query: (id) => `user/admin/get-staff-details/${id}`,
+      providesTags: ["Staff"],
+    }),
     // Delete Staff
     deleteStaff: builder.mutation({
       query: (id) => ({
@@ -88,6 +91,8 @@ export const StaffApi = createApi({
 export const {
   useAddStaffMutation,
   useGetStaffsQuery,
+  useGetDetailsStaffsQuery,
+
   useDeleteStaffMutation,
   useEditStaffMutation,
   useUpdateStaffStatusMutation,

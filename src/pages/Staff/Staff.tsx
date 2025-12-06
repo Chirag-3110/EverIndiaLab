@@ -29,12 +29,14 @@ import { formatDate } from "../../utils/utils";
 import { useAuth } from "../../context/AuthContext";
 import { CheckCircle, Trash2, XCircle } from "lucide-react";
 import { LoadingOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router";
 
 const { Option } = Select;
 
 const Staff = () => {
   const { user } = useAuth();
   const [searchText, setSearchText] = useState("");
+  const navigate = useNavigate();
 
   const { data, isLoading } = useGetStaffsQuery(searchText);
   const { isExpanded, isHovered } = useSidebar();
@@ -160,8 +162,24 @@ const Staff = () => {
         <Avatar src={image || "/default-avatar.png"} size={40} />
       ),
     },
-    { title: "Name", dataIndex: "name", key: "name" },
     {
+      title: "Name",
+      dataIndex: "name",
+      key: "name",
+      width: 100,
+      render: (text, record) => (
+        <span
+          style={{
+            color: "#1890ff",
+            cursor: "pointer",
+            textDecoration: "underline",
+          }}
+          onClick={() => navigate(`/staff-details/${record._id}`)}
+        >
+          {text}
+        </span>
+      ),
+    }, {
       title: "Phone",
       dataIndex: "contactNumber",
       key: "phone",
@@ -380,14 +398,14 @@ const Staff = () => {
               fileList={
                 imageFile
                   ? [
-                      {
-                        uid: "-1",
-                        name: imageFile.name,
-                        status: "done",
-                        type: imageFile.type,
-                        originFileObj: imageFile,
-                      } as UploadFile<RcFile>,
-                    ]
+                    {
+                      uid: "-1",
+                      name: imageFile.name,
+                      status: "done",
+                      type: imageFile.type,
+                      originFileObj: imageFile,
+                    } as UploadFile<RcFile>,
+                  ]
                   : []
               }
             >

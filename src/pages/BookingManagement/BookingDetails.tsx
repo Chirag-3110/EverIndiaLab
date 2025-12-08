@@ -133,55 +133,75 @@ const BookingDetails = () => {
       </div>
     );
 
-  const itemsColumns = [
-    {
-      title: "Item Type",
-      dataIndex: "itemType",
-      key: "itemType",
-      render: (value) => (value === "TestForm" ? "Test" : value),
-    },
-    { title: "Name", dataIndex: "name", key: "name" },
-    {
-      title: "Price",
-      dataIndex: "price",
-      key: "price",
-      render: (price) => `₹${price}`,
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (_, record) => (
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          {Array.isArray(record.reportFiles) &&
-            record.reportFiles.length > 0 ? (
-            <div className="flex flex-col gap-1">
-              {record.reportFiles.map((fileUrl, index) => (
-                <a
-                  key={index}
-                  href={fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: "underline", color: "#1890ff" }}
+  const itemsColumns = (isMainBooking) => {
+    const cols = [
+      {
+        title: "Item Type",
+        dataIndex: "itemType",
+        key: "itemType",
+        render: (value) => (value === "TestForm" ? "Test" : value || "Other Test"),
+        width: 200
+      },
+      {
+        title: "Name",
+        dataIndex: "name",
+        key: "name",
+        render: (_, record) => record.name ?? record.title ?? "-",
+        width: 300
+      },
+      {
+        title: "Price",
+        dataIndex: "price",
+        key: "price",
+        render: (price) => `₹${price}`,
+        width: 100
+      }
+    ];
+
+    // 👉 Add Actions column only if main booking
+    if (isMainBooking) {
+      cols.push({
+        title: "Actions",
+        key: "actions",
+        render: (_, record) => (
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            {Array.isArray(record.reportFiles) && record.reportFiles.length > 0 ? (
+              <div className="flex flex-col gap-1">
+                {record.reportFiles.map((fileUrl, index) => (
+                  <a
+                    key={index}
+                    href={fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: "underline", color: "#1890ff" }}
+                  >
+                    View Report {index + 1}
+                  </a>
+                ))}
+              </div>
+            ) : (
+              booking?.status !== "cancelled" && (
+                <Button
+                  type="primary"
+                  onClick={() => {
+                    setSelectedUploadItem(record);
+                    setUploadModalOpen(true);
+                  }}
                 >
-                  View Report {index + 1}
-                </a>
-              ))}
-            </div>
-          ) : (
-            <Button
-              type="primary"
-              onClick={() => {
-                setSelectedUploadItem(record);
-                setUploadModalOpen(true);
-              }}
-            >
-              <UploadCloud /> Report
-            </Button>
-          )}
-        </div>
-      ),
-    },
-  ];
+                  <UploadCloud /> Report
+                </Button>
+              )
+            )}
+          </div>
+        ),
+        dataIndex: "",
+        width: 0
+      });
+    }
+
+    return cols;
+  };
+
 
   // 🧮 Table Columns
   const columns = [
@@ -435,12 +455,47 @@ const BookingDetails = () => {
         )}
 
         <Tabs.TabPane tab="Assigned Packages/Tests" key="3">
-          <Table
-            columns={itemsColumns}
-            dataSource={booking?.response?.data.items}
-            rowKey="_id"
-            pagination={false}
-          />
+          {
+            booking?.response?.data.items?.length > 0 &&
+            <>
+              <h3 style={{ marginTop: 20, marginBottom: 10 }}>Main Booking Items</h3>
+              <Table
+                columns={itemsColumns(true)}
+                dataSource={booking?.response?.data.items}
+                rowKey="_id"
+                pagination={false}
+              />
+            </>
+          }
+          {
+            booking?.response?.data.otherTestIds?.length > 0 &&
+            <>
+              <h3 style={{ marginTop: 20, marginBottom: 10 }}>Additional Test</h3>
+              <Table
+                columns={itemsColumns(false)}   // 👈 pass true for main booking
+
+                bordered
+                dataSource={booking?.response?.data.otherTestIds}
+                rowKey="_id"
+                pagination={false}
+              />
+            </>
+          }
+          {
+            booking?.response?.data.otherPackageIds?.length > 0 &&
+            <>
+              <h3 style={{ marginTop: 20, marginBottom: 10 }}>Additional Package</h3>
+
+              <Table
+                bordered
+                columns={itemsColumns(false)}   // 👈 pass true for main booking
+
+                dataSource={booking?.response?.data.otherPackageIds}
+                rowKey="_id"
+                pagination={false}
+              />
+            </>
+          }
           <div className="mt-8 flex justify-end">
             {booking?.response?.data?.status !== "completed" &&
               booking?.response?.data?.status !== "cancelled" &&

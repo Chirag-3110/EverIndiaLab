@@ -286,10 +286,12 @@ const BookingList = () => {
       key: "status",
       render: (status: string) => (
         <Tag color={bookingStatusColors[status] || "default"}>
-          {status == "temporary_completed"
+          {status === "temporary_completed"
             ? "Sample Collected"
-            : status == "in_route"
+            : status === "in_route"
             ? "On the Way"
+            : status === "sample_recieved"
+            ? "Sample Received"
             : status}
         </Tag>
       ),

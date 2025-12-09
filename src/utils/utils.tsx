@@ -61,13 +61,13 @@ export function getStatusTextAndColor(statusValue: string) {
   );
 }
 
-
 export const bookingStatusColors = {
   pending: "orange",
   confirmed: "blue",
   in_progress: "cyan",
   in_route: "geekblue",
   completed: "green",
+  sample_recieved: "green",
   cancelled: "red",
   assigned: "purple",
   started: "gold",

@@ -390,15 +390,16 @@ const BookingList = () => {
             mode="multiple"
             options={[
               { value: "pending", label: "Pending" },
+              { value: "assigned", label: "Assigned" },
+              { value: "in_route", label: "On the Way" },
+              { value: "temporary_completed", label: "Sample Collected" },
+              { value: "sample_recieved", label: "Sample Received" },
               { value: "completed", label: "Completed" },
               { value: "cancelled", label: "Cancelled" },
               // { value: "in_progress", label: "In Progress" },
-              { value: "in_route", label: "On the Way" },
               // { value: "confirmed", label: "Confirmed" },
-              { value: "assigned", label: "Assigned" },
               // { value: "started", label: "Started" },
               // { value: "test_collected", label: "Test Collected" },
-              { value: "temporary_completed", label: "Sample Collected" },
             ]}
           />
         </div>

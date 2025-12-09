@@ -136,7 +136,9 @@ const BookingList = () => {
           .includes(searchText.toLowerCase());
 
       const matchesStatus =
-        !statusFilter || statusFilter.length === 0 || statusFilter.includes(item.status);
+        !statusFilter ||
+        statusFilter.length === 0 ||
+        statusFilter.includes(item.status);
       const matchesPayment =
         !paymentTypeFilter || item.paymentType === paymentTypeFilter;
       const matchesCollection =
@@ -146,8 +148,11 @@ const BookingList = () => {
       const matchesDate =
         !dateRange ||
         (!dateRange[0] && !dateRange[1]) ||
-        (dayjs(item.createdAt).isAfter(dateRange[0]) &&
-          dayjs(item.createdAt).isBefore(dateRange[1]));
+        (dayjs(item.createdAt).isAfter(
+          dateRange[0].subtract(1, "day"),
+          "day"
+        ) &&
+          dayjs(item.createdAt).isBefore(dateRange[1].add(1, "day"), "day"));
 
       const matchesBookingDate =
         !dateBookingRange ||
@@ -279,18 +284,28 @@ const BookingList = () => {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => <Tag color={bookingStatusColors[status] || "default"}>{status == "temporary_completed" ? "Sample Collected" : status == "in_route" ? "On the Way" : status}</Tag>,
-
+      render: (status: string) => (
+        <Tag color={bookingStatusColors[status] || "default"}>
+          {status == "temporary_completed"
+            ? "Sample Collected"
+            : status == "in_route"
+            ? "On the Way"
+            : status}
+        </Tag>
+      ),
     },
 
     {
       title: "Actions",
       key: "actions",
       render: (_: any, record: any) => {
-        const allReportsUploaded = record.items?.every(
-          (item: any) =>
-            Array.isArray(item.reportFiles) && item.reportFiles.length > 0
-        );
+        const firstItem = record.items?.[0];
+        const allReportsUploaded =
+          firstItem &&
+          ((Array.isArray(firstItem.reportFiles) &&
+            firstItem.reportFiles.length > 0) ||
+            (typeof firstItem.reportFile === "string" &&
+              firstItem.reportFile.trim() !== ""));
 
         return (
           <div style={{ display: "flex", gap: "8px" }}>
@@ -298,10 +313,10 @@ const BookingList = () => {
               <EyeIcon size={18} />
             </Button>
             {record?.status !== "completed" &&
-              record?.status !== "cancelled" &&
-              record?.paymentType === "cash" &&
-              record?.paymentStatus === "paid" &&
-              allReportsUploaded ? (
+            record?.status !== "cancelled" &&
+            record?.paymentType === "cash" &&
+            record?.paymentStatus === "paid" &&
+            allReportsUploaded ? (
               <Button
                 onClick={() => handleCashPayment(record)}
                 style={{
@@ -310,16 +325,16 @@ const BookingList = () => {
                   borderColor: "#27ae60",
                   fontWeight: "600",
                 }}
-              // loading={isSubmiting}
+                // loading={isSubmiting}
               >
                 Mark As Completed
               </Button>
             ) : null}
 
             {record?.paymentType === "online" &&
-              record?.status !== "completed" &&
-              record?.status !== "cancelled" &&
-              allReportsUploaded ? (
+            record?.status !== "completed" &&
+            record?.status !== "cancelled" &&
+            allReportsUploaded ? (
               <Button
                 onClick={() => handleOnlinePayment(record)}
                 style={{

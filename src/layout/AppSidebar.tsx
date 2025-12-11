@@ -102,11 +102,15 @@ export default function AppSidebar() {
       i.subItems ? i.subItems.map((s) => s.path) : i.path
     );
 
-    if (!allowed.includes(location.pathname)) {
-      const first = permittedItems[0];
-      const firstPath = first?.subItems?.[0]?.path || first?.path;
-      if (firstPath) navigate(firstPath, { replace: true });
-    }
+      const isAllowedRoute = allowed.some((allowedPath) =>
+        location.pathname.startsWith(allowedPath)
+      );
+
+      if (!isAllowedRoute) {
+        const first = permittedItems[0];
+        const firstPath = first?.subItems?.[0]?.path || first?.path;
+        if (firstPath) navigate(firstPath, { replace: true });
+      }
   }, [permittedItems, isOwner]);
 
   const toggleMenu = (index) => {

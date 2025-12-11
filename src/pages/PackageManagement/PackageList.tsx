@@ -80,9 +80,14 @@ const PackageList = () => {
     },
     {
       title: "Category",
-      dataIndex: ["category", "name"],
+      dataIndex: "category",
       key: "category",
-      render: (v) => `${v}`,
+      width: 130,
+      render: (categories) => {
+        if (!categories || categories?.length === 0) return "-";
+
+        return categories.map((c) => c?.name || c).join(", ");
+      },
     },
     {
       title: "Tests",
@@ -113,39 +118,39 @@ const PackageList = () => {
     },
   ];
 
-    const includedTestsColumns = [
-      {
-        title: "Test Title",
-        dataIndex: "title",
-        key: "title",
-      },
-      {
-        title: "Category",
-        dataIndex: "category",
-        key: "category",
-      },
-      {
-        title: "Description",
-        dataIndex: "description",
-        key: "description",
-        render: (text) => text || "-",
-      },
-      {
-        title: "Recommended Gender",
-        dataIndex: "recommendedGender",
-        key: "recommendedGender",
-      },
-      {
-        title: "Report Time",
-        dataIndex: "reportTime",
-        key: "reportTime",
-      },
-      {
-        title: "Price",
-        dataIndex: "price",
-        key: "price",
-      },
-    ];
+  const includedTestsColumns = [
+    {
+      title: "Test Title",
+      dataIndex: "title",
+      key: "title",
+    },
+    {
+      title: "Category",
+      dataIndex: "category",
+      key: "category",
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      render: (text) => text || "-",
+    },
+    {
+      title: "Recommended Gender",
+      dataIndex: "recommendedGender",
+      key: "recommendedGender",
+    },
+    {
+      title: "Report Time",
+      dataIndex: "reportTime",
+      key: "reportTime",
+    },
+    {
+      title: "Price",
+      dataIndex: "price",
+      key: "price",
+    },
+  ];
 
   return (
     <div>

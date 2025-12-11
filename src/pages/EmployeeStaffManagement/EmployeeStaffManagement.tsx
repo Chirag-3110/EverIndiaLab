@@ -19,6 +19,7 @@ import {
 } from "../../redux/api/labEmployeeApi";
 import { useAuth } from "../../context/AuthContext";
 import { PenBox, Trash } from "lucide-react";
+import { toast } from "react-toastify";
 
 const { Option } = Select;
 
@@ -91,32 +92,32 @@ const EmployeeStaffManagement: React.FC = () => {
           id: editingEmployeeId,
           formData: payload,
         }).unwrap();
-        message.success("Employee updated successfully");
+        toast.success("Employee updated successfully");
       } else {
         await addLabEmployee(payload).unwrap();
-        message.success("Employee added successfully");
+        toast.success("Employee added successfully");
       }
       refetch();
       closeModal();
-    } catch {
-      message.error("Operation failed. Please try again.");
+    } catch (err: any) {
+      const apitoast =
+        err?.data?.message ||
+        err?.error ||
+        "Operation failed. Please try again.";
+
+      toast.error(apitoast);
     }
   };
 
   // Confirm and delete employee
-  const handleDelete = (id: string) => {
-    Modal.confirm({
-      title: "Are you sure delete this employee?",
-      onOk: async () => {
-        try {
-          await deleteLabEmployee(id).unwrap();
-          message.success("Employee deleted successfully");
-          refetch();
-        } catch {
-          message.error("Failed to delete employee");
-        }
-      },
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteLabEmployee(id).unwrap();
+      toast.success("Employee deleted successfully");
+      refetch();
+    } catch {
+      toast.error("Failed to delete employee");
+    }
   };
 
   // Table columns configuration
@@ -144,12 +145,7 @@ const EmployeeStaffManagement: React.FC = () => {
           <Button onClick={() => openModal(record)} type="link">
             <PenBox size={18} />
           </Button>
-          <Button
-            danger
-            onClick={() => handleDelete(record._id)}
-            loading={isDeleting}
-            type="link"
-          >
+          <Button danger onClick={() => handleDelete(record._id)} type="link">
             <Trash size={18} />
           </Button>
         </Space>

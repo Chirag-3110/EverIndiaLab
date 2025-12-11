@@ -22,12 +22,12 @@ const navItems: any = [
     icon: <Grid2X2Icon />,
     permission: "view-dashboard",
   },
-  {
-    name: "Category Management",
-    path: "/category-management",
-    icon: <TablePropertiesIcon />,
-    permission: "manage-category",
-  },
+  // {
+  //   name: "Category Management",
+  //   path: "/category-management",
+  //   icon: <TablePropertiesIcon />,
+  //   permission: "manage-category",
+  // },
   {
     name: "Phlebotomist",
     path: "/staff",
@@ -102,15 +102,15 @@ export default function AppSidebar() {
       i.subItems ? i.subItems.map((s) => s.path) : i.path
     );
 
-      const isAllowedRoute = allowed.some((allowedPath) =>
-        location.pathname.startsWith(allowedPath)
-      );
+    const isAllowedRoute = allowed.some((allowedPath) =>
+      location.pathname.startsWith(allowedPath)
+    );
 
-      if (!isAllowedRoute) {
-        const first = permittedItems[0];
-        const firstPath = first?.subItems?.[0]?.path || first?.path;
-        if (firstPath) navigate(firstPath, { replace: true });
-      }
+    if (!isAllowedRoute) {
+      const first = permittedItems[0];
+      const firstPath = first?.subItems?.[0]?.path || first?.path;
+      if (firstPath) navigate(firstPath, { replace: true });
+    }
   }, [permittedItems, isOwner]);
 
   const toggleMenu = (index) => {

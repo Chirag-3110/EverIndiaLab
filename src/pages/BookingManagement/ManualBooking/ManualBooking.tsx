@@ -41,7 +41,12 @@ const ManualBooking = () => {
   const user = data?.response?.data;
   const userId = user?._id;
 
-  const { data: familyMemberList } = useGetManualUserFamilyMembersQuery(userId);
+  const { data: familyMemberList } = useGetManualUserFamilyMembersQuery(
+    userId,
+    {
+      skip: !userId,
+    }
+  );
   const familyMembers = familyMemberList?.response?.relations || [];
 
   console.log(familyMemberList);
@@ -126,12 +131,23 @@ const ManualBooking = () => {
       key: "phoneNumber",
     },
   ];
+
   const rowSelection = {
     type: "radio" as const,
     selectedRowKeys: selectedFamilyMember ? [selectedFamilyMember._id] : [],
     onChange: (_keys: React.Key[], rows: any[]) => {
       setSelectedFamilyMember(rows[0]);
     },
+  };
+
+  const openCreateUserModal = () => {
+    setIsCreateUserModalOpen(true);
+
+    if (searchInput) {
+      form.setFieldsValue({
+        phoneNumber: searchInput,
+      });
+    }
   };
 
   return (
@@ -143,7 +159,7 @@ const ManualBooking = () => {
         <div className="bg-white p-4 rounded shadow flex gap-2 items-center">
           <input
             type="text"
-            placeholder="Search by mobile / email"
+            placeholder="Search by mobile"
             className="border p-2 rounded w-64"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
@@ -173,7 +189,7 @@ const ManualBooking = () => {
             <p>User not found</p>
             <button
               className="mt-2 bg-green-600 text-white px-4 py-2 rounded"
-              onClick={() => setIsCreateUserModalOpen(true)}
+              onClick={() => openCreateUserModal()}
             >
               Create User
             </button>
@@ -295,7 +311,7 @@ const ManualBooking = () => {
             label="Name"
             rules={[{ required: true, message: "Name is required" }]}
           >
-            <Input />
+            <Input placeholder="Enter Name" />
           </Form.Item>
 
           <Form.Item
@@ -315,7 +331,7 @@ const ManualBooking = () => {
             label="Email"
             rules={[{ type: "email", message: "Enter valid email" }]}
           >
-            <Input />
+            <Input placeholder="Enter Email" />
           </Form.Item>
         </Form>
       </Modal>

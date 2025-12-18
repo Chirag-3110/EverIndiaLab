@@ -7,20 +7,17 @@ import {
   useAddGetManualUserFinalBookingDetailsMutation,
   useAddGetManualUserPreBookingDetailsMutation,
 } from "../../../redux/api/manualApi";
-import { Tabs, Table, Input, Button } from "antd";
+import { Tabs, Table, Input, Button, Modal } from "antd";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { formatDate } from "../../../utils/utils";
-type TabType = "test" | "package" | "coupon";
 
 const AddBookingItems = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
 
-  const userId = state?.userId;
+  const USER_ID = state?.userId;
   const familyMemberId = state?.familyMemberId;
-
-  const USER_ID = userId;
 
   const [activeTab, setActiveTab] = useState("test");
   const [searchText, setSearchText] = useState("");
@@ -31,7 +28,11 @@ const AddBookingItems = () => {
   const [selectedPackages, setSelectedPackages] = useState<any[]>([]);
   const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
 
-  /* ---------------- APIs ---------------- */
+  const [couponSearch, setCouponSearch] = useState("");
+  const [couponModalOpen, setCouponModalOpen] = useState(false);
+  const [summaryModalOpen, setSummaryModalOpen] = useState(false);
+  const [preBookingAmount, setPreBookingAmount] = useState<any>(null);
+
 
   const { data: testRes, isFetching: testLoading } = useGettestFormQuery({
     searchText,
@@ -47,164 +48,129 @@ const AddBookingItems = () => {
 
   const { data: couponRes, isFetching: couponLoading } = useGetCouponQuery("");
 
-  const [fetchPreBooking, { isLoading }] =
+  const [fetchPreBooking, { isLoading: preLoading }] =
     useAddGetManualUserPreBookingDetailsMutation();
 
-  const [finalBooking, { isLoading: finalLoading, error }] =
+  const [finalBooking, { isLoading: finalLoading }] =
     useAddGetManualUserFinalBookingDetailsMutation();
 
-  const sanitizeAmount = (amountRes: any) => {
-    const { message, ...amount } = amountRes;
-    return amount;
-  };
-  console.log(error);
-  /* ---------------- Columns ---------------- */
 
-  const testColumns: any = [
+  const testColumns = [
     { title: "Test Name", dataIndex: "title" },
     { title: "Price", dataIndex: "price" },
     { title: "Discount Price", dataIndex: "discountPrice" },
   ];
 
-  const packageColumns: any = [
+  const packageColumns = [
     { title: "Package Name", dataIndex: "title" },
     { title: "Price", dataIndex: "price" },
-    { title: "DiscountPrice", dataIndex: "discountPrice" },
+    { title: "Discount Price", dataIndex: "discountPrice" },
   ];
 
-  const couponColumns: any = [
+  const couponColumns = [
     { title: "Coupon Code", dataIndex: "code" },
     {
       title: "Discount",
-      render: (_, r) =>
+      render: (_: any, r: any) =>
         r.discountType === "percentage"
           ? `${r.discountValue}%`
           : `₹${r.discountValue}`,
     },
     {
-      title: "Valid from",
+      title: "Valid From",
       dataIndex: "validFrom",
-      render: (value: any) => formatDate(value),
+      render: formatDate,
     },
     {
       title: "Valid Till",
       dataIndex: "validTill",
-      render: (value: any) => formatDate(value),
+      render: formatDate,
     },
   ];
 
-  /* ---------------- Submit ---------------- */
-
-  const buildFinalBookingFormData = ({
-    userId,
-    familyMemberId,
-    paymentType,
-    offerId,
-    items,
-    amount,
-  }: any) => {
-    const formData = new FormData();
-
-    formData.append("userId", userId);
-    formData.append("paymentType", paymentType);
-
-    if (familyMemberId) formData.append("familyMemberId", familyMemberId);
-    if (offerId) formData.append("offerId", offerId);
-
-    // 🔹 items → array
-    formData.append("items", JSON.stringify(items));
-
-    // 🔹 amount → object
-    formData.append(
-      "amount",
-      JSON.stringify({
-        total: amount?.totalOriginalAmount || 0,
-        collectiontype: "Lab Visit",
-        discount: amount?.couponAppliedAmount || 0,
-        everCash: amount?.walletUsed || 0,
-        finalAmount: amount?.payableAmount || 0,
-        platformFee: amount?.platformFee || 0,
-        bannerAppliedAmount: amount?.bannerAppliedAmount,
-      })
-    );
-
-    return formData;
-  };
 
   const handleContinue = async () => {
     try {
       const items = [
-        ...selectedTests.map((item) => ({
-          type: "test",
-          testId: item._id,
-        })),
-        ...selectedPackages.map((item) => ({
+        ...selectedTests.map((t) => ({ type: "test", testId: t._id })),
+        ...selectedPackages.map((p) => ({
           type: "package",
-          packageId: item._id,
+          packageId: p._id,
         })),
       ];
 
-      // 🔹 STEP 1: Pre Booking
-      const preBookingRes = await fetchPreBooking({
+      const res = await fetchPreBooking({
         userId: USER_ID,
         items,
         couponId: selectedCoupon || undefined,
       }).unwrap();
 
-      // Remove message
-      const { message, ...amount } = preBookingRes?.response;
-
-      const itemsFinal = [
-        ...selectedTests.map((item) => ({
-          itemType: "TestForm",
-          itemId: item._id,
-          price: item.price,
-        })),
-        ...selectedPackages.map((item) => ({
-          itemType: "Package",
-          itemId: item._id,
-          price: item.price,
-        })),
-      ];
-
-      // 🔹 STEP 2: Build FormData
-      const formData = buildFinalBookingFormData({
-        userId: USER_ID,
-        familyMemberId: familyMemberId || undefined,
-        paymentType: "cash",
-        offerId: selectedCoupon || undefined,
-        items: itemsFinal,
-        amount,
-      });
-
-      // 🔹 STEP 3: Final Booking
-      await finalBooking(formData).unwrap();
-
-      toast.success("Booking completed successfully");
-      navigate("/booking-list");
-    } catch (error: any) {
-      toast.error(error?.data?.message || "Booking failed");
+      const { message, ...amount } = res.response;
+      setPreBookingAmount(amount);
+      setSummaryModalOpen(true);
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Pre booking failed");
     }
   };
 
-  /* ---------------- Common Pagination ---------------- */
 
-  const paginationConfig = (total: number) => ({
-    current: page,
-    pageSize,
-    total,
-    showSizeChanger: true,
-    onChange: (p: number, ps: number) => {
-      setPage(p);
-      setPageSize(ps);
-    },
-  });
+  const handleFinalBooking = async () => {
+    try {
+      const itemsFinal = [
+        ...selectedTests.map((t) => ({
+          itemType: "TestForm",
+          itemId: t._id,
+          price: t.price,
+        })),
+        ...selectedPackages.map((p) => ({
+          itemType: "Package",
+          itemId: p._id,
+          price: p.price,
+        })),
+      ];
+
+      const formData = new FormData();
+      formData.append("userId", USER_ID);
+      formData.append("paymentType", "cash");
+      if (familyMemberId) formData.append("familyMemberId", familyMemberId);
+      if (selectedCoupon) formData.append("offerId", selectedCoupon);
+      formData.append("items", JSON.stringify(itemsFinal));
+      formData.append(
+        "amount",
+        JSON.stringify({
+          total: preBookingAmount?.totalOriginalAmount,
+          discount: preBookingAmount?.couponAppliedAmount || 0,
+          finalAmount: preBookingAmount?.payableAmount,
+          platformFee: preBookingAmount?.platformFee || 0,
+          collectiontype: "Lab Visit",
+        })
+      );
+
+      await finalBooking(formData).unwrap();
+      toast.success("Booking completed successfully");
+      navigate("/booking-list");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Final booking failed");
+    }
+  };
+
+  const filteredCoupons =
+    couponRes?.message?.coupons?.filter((c: any) =>
+      c.code.toLowerCase().includes(couponSearch.toLowerCase())
+    ) || [];
 
   /* ---------------- UI ---------------- */
 
   return (
     <div className="bg-white p-4 rounded-xl">
       <PageBreadcrumb pageTitle="Add Booking Items" />
+
+      {/* Coupon Button */}
+      <div className="flex justify-end mb-3">
+        <Button onClick={() => setCouponModalOpen(true)}>
+          Apply Coupon (Optional)
+        </Button>
+      </div>
 
       <Tabs
         activeKey={activeTab}
@@ -213,7 +179,6 @@ const AddBookingItems = () => {
           setPage(1);
           setSearchText("");
         }}
-        className="mt-4"
         items={[
           {
             key: "test",
@@ -222,7 +187,6 @@ const AddBookingItems = () => {
               <>
                 <Input.Search
                   placeholder="Search test"
-                  allowClear
                   onSearch={(v) => {
                     setSearchText(v);
                     setPage(1);
@@ -234,18 +198,15 @@ const AddBookingItems = () => {
                   rowKey="_id"
                   loading={testLoading}
                   columns={testColumns}
-                  dataSource={testRes?.response?.testForms ?? []}
+                  dataSource={testRes?.response?.testForms || []}
                   rowSelection={{
                     selectedRowKeys: selectedTests.map((i) => i._id),
-                    onChange: (keys, rows) => {
-                      setSelectedTests(rows);
-                    },
+                    onChange: (_, rows) => setSelectedTests(rows),
                   }}
                   pagination={{
                     current: testRes?.response?.pagination?.currentPage || page,
                     pageSize,
                     total: testRes?.response?.pagination?.totalCount || 0,
-                    showSizeChanger: true,
                     onChange: (p, ps) => {
                       setPage(p);
                       setPageSize(ps);
@@ -262,7 +223,6 @@ const AddBookingItems = () => {
               <>
                 <Input.Search
                   placeholder="Search package"
-                  allowClear
                   onSearch={(v) => {
                     setSearchText(v);
                     setPage(1);
@@ -274,55 +234,165 @@ const AddBookingItems = () => {
                   rowKey="_id"
                   loading={packageLoading}
                   columns={packageColumns}
-                  dataSource={packageRes?.response?.packages ?? []}
+                  dataSource={packageRes?.response?.packages || []}
                   rowSelection={{
                     selectedRowKeys: selectedPackages.map((i) => i._id),
-                    onChange: (keys, rows) => {
-                      setSelectedPackages(rows);
+                    onChange: (_, rows) => setSelectedPackages(rows),
+                  }}
+                  pagination={{
+                    current: page,
+                    pageSize,
+                    total: packageRes?.response?.pagination?.totalCount || 0,
+                    onChange: (p, ps) => {
+                      setPage(p);
+                      setPageSize(ps);
                     },
                   }}
-                  pagination={paginationConfig(
-                    packageRes?.response?.packages.length || 0
-                  )}
                 />
               </>
-            ),
-          },
-          {
-            key: "coupon",
-            label: "Coupons",
-            children: (
-              <Table
-                rowKey="_id"
-                loading={couponLoading}
-                columns={couponColumns}
-                dataSource={couponRes?.message?.coupons ?? []}
-                rowSelection={{
-                  type: "radio",
-                  selectedRowKeys: selectedCoupon ? [selectedCoupon] : [],
-                  onChange: (keys) => setSelectedCoupon(keys[0] as string),
-                }}
-                pagination={paginationConfig(
-                  couponRes?.message?.coupons?.length || 0
-                )}
-              />
             ),
           },
         ]}
       />
 
-      {/* Footer */}
       <div className="flex justify-end mt-6">
         <Button
           type="primary"
           size="large"
           disabled={!selectedTests.length && !selectedPackages.length}
-          loading={isLoading}
+          loading={preLoading}
           onClick={handleContinue}
         >
-          Continue to Payment
+          Next
         </Button>
       </div>
+
+      <Modal
+        title="Select Coupon"
+        open={couponModalOpen}
+        onCancel={() => {
+          setCouponModalOpen(false);
+          setCouponSearch("");
+        }}
+        footer={null}
+      >
+        {/* 🔍 Search Coupon */}
+        <Input.Search
+          placeholder="Search coupon code"
+          allowClear
+          value={couponSearch}
+          onChange={(e) => setCouponSearch(e.target.value)}
+          className="mb-3"
+        />
+
+        <Table
+          rowKey="_id"
+          loading={couponLoading}
+          columns={couponColumns}
+          dataSource={filteredCoupons}
+          rowSelection={{
+            type: "radio",
+            selectedRowKeys: selectedCoupon ? [selectedCoupon] : [],
+            onChange: (keys) => setSelectedCoupon(keys[0] as string),
+          }}
+          pagination={false}
+        />
+
+        <div className="flex justify-end mt-4">
+          <Button
+            type="primary"
+            disabled={!selectedCoupon}
+            onClick={() => setCouponModalOpen(false)}
+          >
+            Apply
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        title="Booking Summary"
+        open={summaryModalOpen}
+        onCancel={() => setSummaryModalOpen(false)}
+        footer={null}
+        width={600}
+      >
+        {/* 🧾 Bill Container */}
+        <div className="border rounded-lg p-4 bg-gray-50">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="text-lg font-semibold">EverIndia Path Lab</h3>
+              <p className="text-sm text-gray-500">Manual Booking Invoice</p>
+            </div>
+            <div className="text-right text-sm text-gray-500">
+              <p>Date: {new Date().toLocaleDateString()}</p>
+              <p>Payment: Cash</p>
+            </div>
+          </div>
+
+          {/* Items Table */}
+          <div className="bg-white rounded-md border mb-4">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="text-left p-2">Item</th>
+                  <th className="text-right p-2">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedTests.map((t) => (
+                  <tr key={t._id} className="border-t">
+                    <td className="p-2">{t.title}</td>
+                    <td className="p-2 text-right">₹{t.price}</td>
+                  </tr>
+                ))}
+
+                {selectedPackages.map((p) => (
+                  <tr key={p._id} className="border-t">
+                    <td className="p-2">{p.title}</td>
+                    <td className="p-2 text-right">₹{p.price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Price Summary */}
+          <div className="bg-white rounded-md border p-3">
+            <div className="flex justify-between text-sm mb-1">
+              <span>Total Amount</span>
+              <span>₹{preBookingAmount?.totalOriginalAmount}</span>
+            </div>
+
+            <div className="flex justify-between text-sm mb-1 text-green-600">
+              <span>Coupon Discount</span>
+              <span>- ₹{preBookingAmount?.couponAppliedAmount || 0}</span>
+            </div>
+
+            <div className="flex justify-between text-sm mb-1">
+              <span>Platform Fee</span>
+              <span>₹{preBookingAmount?.platformFee || 0}</span>
+            </div>
+
+            <div className="border-t mt-2 pt-2 flex justify-between font-semibold text-base">
+              <span>Payable Amount</span>
+              <span>₹{preBookingAmount?.payableAmount}</span>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-end mt-5">
+            <Button
+              type="primary"
+              size="large"
+              loading={finalLoading}
+              onClick={handleFinalBooking}
+            >
+              Confirm Booking
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

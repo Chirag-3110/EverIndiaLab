@@ -162,7 +162,11 @@ const ManualBooking = () => {
             placeholder="Search by mobile"
             className="border p-2 rounded w-64"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "").slice(0, 10);
+
+              setSearchInput(value);
+            }}
           />
 
           <button

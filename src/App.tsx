@@ -19,6 +19,8 @@ import BookingDetails from "./pages/BookingManagement/BookingDetails";
 import Inquiry from "./pages/Inquiry/Inquiry";
 import EmployeeStaffManagement from "./pages/EmployeeStaffManagement/EmployeeStaffManagement";
 import StaffDetails from "./pages/Staff/StaffDetails";
+import ManualBooking from "./pages/BookingManagement/ManualBooking/ManualBooking";
+import AddBookingItems from "./pages/BookingManagement/ManualBooking/AddBookingItems";
 
 export default function App() {
   return (
@@ -47,7 +49,6 @@ export default function App() {
           {/* Staff Management */}
           <Route index path="/Staff" element={<Staff />} />
           <Route index path="/staff-details/:id" element={<StaffDetails />} />
-
           <Route
             index
             path="/employee-staff"
@@ -65,6 +66,12 @@ export default function App() {
           <Route index path="/packages/new" element={<PackageForm />} />
           <Route path="/packages/assign" element={<PackageAssign />} />
           {/* Booking Management */}
+          <Route index path="/manual-booking" element={<ManualBooking />} />
+          <Route
+            index
+            path="/manual-booking-create"
+            element={<AddBookingItems />}
+          />
           <Route index path="/booking-list" element={<BookingList />} />
           <Route
             index

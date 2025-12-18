@@ -360,6 +360,12 @@ const BookingList = () => {
     <div>
       <PageBreadcrumb pageTitle="Booking List" />
 
+      <div className="mb-4">
+        <Button type="primary" onClick={() => navigate("/manual-booking")}>
+          Create Booking
+        </Button>
+      </div>
+
       {/* 🔍 Filters */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="flex flex-col">

@@ -11,6 +11,8 @@ import { masterPanelApi } from "../api/masterPanelApi";
 import { ticketApi } from "../api/ticketApi";
 import { labEmployeeApi } from "../api/labEmployeeApi";
 import { accessPermissionApi } from "../api/accessPermissionApi";
+import { manualApi } from "../api/manualApi";
+import { couponApi } from "../api/couponApi";
 
 export const store = configureStore({
   reducer: {
@@ -26,6 +28,8 @@ export const store = configureStore({
     [ticketApi.reducerPath]: ticketApi.reducer,
     [labEmployeeApi.reducerPath]: labEmployeeApi.reducer,
     [accessPermissionApi.reducerPath]: accessPermissionApi.reducer,
+    [manualApi.reducerPath]: manualApi.reducer,
+    [couponApi.reducerPath]: couponApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -41,5 +45,7 @@ export const store = configureStore({
       ticketApi.middleware,
       labEmployeeApi.middleware,
       accessPermissionApi.middleware,
+      manualApi.middleware,
+      couponApi.middleware,
     ]),
 });

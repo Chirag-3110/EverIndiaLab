@@ -166,6 +166,14 @@ const AddBookingItems = () => {
         toast.info("Please select the lab first");
         return;
       }
+      if (!bookingType) {
+        toast.info("Please select the booking type.");
+        return;
+      }
+      if (!paymentMode) {
+        toast.info("Please select the payment mode.");
+        return;
+      }
       const itemsFinal = [
         ...selectedTests.map((t) => ({
           itemType: "TestForm",
@@ -434,7 +442,6 @@ const AddBookingItems = () => {
             </tbody>{" "}
           </table>{" "}
         </div>
-        
         <div className="flex justify-start mb-3">
           <button
             className="bg-green-600 hover:bg-green-700 px-2 py-1.5 rounded-md text-white text-xs"
@@ -486,7 +493,7 @@ const AddBookingItems = () => {
             <div className="space-y-4">
               {/* Transaction ID */}
               <Input
-                placeholder="Enter Transaction ID"
+                placeholder="Enter QR ID"
                 value={transactionId}
                 onChange={(e) => setTransactionId(e.target.value)}
               />
@@ -503,7 +510,7 @@ const AddBookingItems = () => {
                 accept="image/*"
               >
                 <Button icon={<UploadOutlined />}>
-                  Upload Transaction Image
+                  Upload QR Image
                 </Button>
               </Upload>
 

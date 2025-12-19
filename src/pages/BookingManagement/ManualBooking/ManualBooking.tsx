@@ -24,6 +24,7 @@ const ManualBooking = () => {
   const [searchTrigger, setSearchTrigger] = useState(false);
   const [bookingFor, setBookingFor] = useState<"self" | "family">("self");
   const [selectedFamilyMember, setSelectedFamilyMember] = useState<any>(null);
+  const [newlyCreatedUser, setNewlyCreatedUser] = useState<any>(null);
 
   const [addFamilyMember, { isLoading: isAddingFamily }] =
     useAddManualUserFamilyMemberMutation();
@@ -65,16 +66,34 @@ const ManualBooking = () => {
 
   const handleCreateUser = async (values: any) => {
     try {
-      await addManualUser(values).unwrap();
+      const res = await addManualUser(values).unwrap();
 
       toast.success("User created successfully");
+
+      const createdUser = res?.response?.data; // adjust if API differs
+      setNewlyCreatedUser(createdUser);
 
       setIsCreateUserModalOpen(false);
       form.resetFields();
 
-      // 🔄 Trigger search again to fetch newly created user
       setSearchValue(values.phoneNumber);
       setSearchTrigger(true);
+
+      const sanitizedPhoneNumber = createdUser.phoneNumber?.replace(
+        /^\+91\s?/,
+        ""
+      );
+      setTimeout(() => {
+        setIsFamilyModalOpen(true);
+
+        familyForm.setFieldsValue({
+          name: createdUser.name,
+          gender: createdUser.gender,
+          phoneNumber: sanitizedPhoneNumber,
+          email: createdUser.email || "",
+          relation: "self",
+        });
+      }, 300);
     } catch (error: any) {
       toast.error(error?.data?.message || "Failed to create user");
     }
@@ -84,8 +103,10 @@ const ManualBooking = () => {
     try {
       const payload = {
         ...values,
-        userId: user?._id, // 🔑 main user ID
+        userId: user?._id,
       };
+
+      console.log(payload);
 
       await addFamilyMember(payload).unwrap();
 
@@ -209,14 +230,14 @@ const ManualBooking = () => {
 
             {/* Self / Family Choice */}
             <div className="flex gap-4 mt-2">
-              <label>
+              {/* <label>
                 <input
                   type="radio"
                   checked={bookingFor === "self"}
                   onChange={() => setBookingFor("self")}
                 />
                 <span className="ml-1">Self</span>
-              </label>
+              </label> */}
 
               <label>
                 <input
@@ -224,7 +245,7 @@ const ManualBooking = () => {
                   checked={bookingFor === "family"}
                   onChange={() => setBookingFor("family")}
                 />
-                <span className="ml-1">Family Member</span>
+                <span className="ml-1">Select Member</span>
               </label>
             </div>
 
@@ -232,13 +253,13 @@ const ManualBooking = () => {
             {bookingFor === "family" && (
               <div className="border p-3 rounded space-y-3">
                 <div className="flex justify-between items-center">
-                  <p className="font-medium">Select Family Member</p>
+                  <p className="font-medium">Select Member</p>
 
                   <button
                     className="bg-indigo-600 text-white px-3 py-1 rounded"
                     onClick={() => setIsFamilyModalOpen(true)}
                   >
-                    Add Family Member
+                    Add Member
                   </button>
                 </div>
 
@@ -254,7 +275,7 @@ const ManualBooking = () => {
 
                 {!familyMembers.length && (
                   <p className="text-sm text-gray-500">
-                    No family members found. Please add one.
+                    No members found. Please add one.
                   </p>
                 )}
               </div>
@@ -391,6 +412,7 @@ const ManualBooking = () => {
             rules={[{ required: true, message: "Relation is required" }]}
           >
             <Select placeholder="Select relation">
+              <Select.Option value="self">Self</Select.Option>
               <Select.Option value="father">Father</Select.Option>
               <Select.Option value="mother">Mother</Select.Option>
               <Select.Option value="brother">Brother</Select.Option>
@@ -398,6 +420,7 @@ const ManualBooking = () => {
               <Select.Option value="spouse">Spouse</Select.Option>
               <Select.Option value="son">Son</Select.Option>
               <Select.Option value="daughter">Daughter</Select.Option>
+              <Select.Option value="other">Other</Select.Option>
             </Select>
           </Form.Item>
 

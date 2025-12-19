@@ -13,6 +13,7 @@ import { labEmployeeApi } from "../api/labEmployeeApi";
 import { accessPermissionApi } from "../api/accessPermissionApi";
 import { manualApi } from "../api/manualApi";
 import { couponApi } from "../api/couponApi";
+import { labsApi } from "../api/labsApi";
 
 export const store = configureStore({
   reducer: {
@@ -30,6 +31,7 @@ export const store = configureStore({
     [accessPermissionApi.reducerPath]: accessPermissionApi.reducer,
     [manualApi.reducerPath]: manualApi.reducer,
     [couponApi.reducerPath]: couponApi.reducer,
+    [labsApi.reducerPath]: labsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -47,5 +49,6 @@ export const store = configureStore({
       accessPermissionApi.middleware,
       manualApi.middleware,
       couponApi.middleware,
+      labsApi.middleware,
     ]),
 });

@@ -25,8 +25,10 @@ import { useGetStaffsQuery } from "../../redux/api/staffApi";
 import { toast } from "react-toastify";
 import { bookingStatusColors, formatDateTime } from "../../utils/utils";
 import { File, UploadCloud } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const BookingDetails = () => {
+ 
   const navigate = useNavigate();
   const { id } = useParams();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -253,10 +255,13 @@ const BookingDetails = () => {
     },
     {
       title: "Price",
-      dataIndex: "price",
       key: "price",
-      render: (price) => `₹${price}`,
-      width: 100,
+      width: 140,
+      render: (_: any, record: any) => {
+        const price = record?.itemId?.price;
+        const discountPrice = record?.itemId?.discountPrice;
+        return <span>₹{discountPrice ?? price}</span>;
+      },
     },
   ];
 

@@ -31,6 +31,7 @@ const PERMISSION_OPTIONS = [
   "manage-staff",
   "manage-package",
   "manage-test",
+  "manualbookings",
   "manage-bookings",
   "manage-inquiry",
 ];

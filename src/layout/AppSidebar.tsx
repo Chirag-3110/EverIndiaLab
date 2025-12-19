@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
+  File,
   Grid2X2Icon,
   NotebookPenIcon,
   NotebookTextIcon,
@@ -28,6 +29,12 @@ const navItems: any = [
   //   icon: <TablePropertiesIcon />,
   //   permission: "manage-category",
   // },
+  {
+    icon: <File />,
+    name: "Create Booking",
+    path: "/manual-booking",
+    newD: "manualbookings",
+  },
   {
     name: "Phlebotomist",
     path: "/staff",

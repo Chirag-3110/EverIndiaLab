@@ -67,7 +67,7 @@ export const bookingStatusColors = {
   in_progress: "cyan",
   in_route: "geekblue",
   completed: "green",
-  sample_recieved: "green",
+  sample_received: "green",
   cancelled: "red",
   assigned: "purple",
   started: "gold",

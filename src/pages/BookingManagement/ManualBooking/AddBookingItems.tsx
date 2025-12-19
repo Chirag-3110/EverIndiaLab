@@ -7,17 +7,23 @@ import {
   useAddGetManualUserFinalBookingDetailsMutation,
   useAddGetManualUserPreBookingDetailsMutation,
 } from "../../../redux/api/manualApi";
-import { Tabs, Table, Input, Button, Modal } from "antd";
+import { Tabs, Table, Input, Button, Modal, Select, Upload } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { formatDate } from "../../../utils/utils";
+import { useGetlabsQuery } from "../../../redux/api/labsApi";
+import { useAuth } from "../../../context/AuthContext";
+
+const { Option } = Select;
 
 /* ================= COMPONENT ================= */
 
 const AddBookingItems = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
-
+  const { user } = useAuth();
+  console.log(user?._id);
   const USER_ID = state?.userId;
   const familyMemberId = state?.familyMemberId;
 
@@ -30,6 +36,12 @@ const AddBookingItems = () => {
   const [selectedTests, setSelectedTests] = useState<any[]>([]);
   const [selectedPackages, setSelectedPackages] = useState<any[]>([]);
   const [bookingItems, setBookingItems] = useState<any[]>([]);
+  const [bookingType, setBookingType] = useState<"normal" | "walkin" | null>(
+    null
+  );
+  const [transactionId, setTransactionId] = useState("");
+  const [transactionImage, setTransactionImage] = useState<File | null>(null);
+  const [paymentMode, setPaymentMode] = useState<string | null>(null);
 
   const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
   const [couponSearch, setCouponSearch] = useState("");
@@ -52,6 +64,12 @@ const AddBookingItems = () => {
   });
 
   const { data: couponRes, isFetching: couponLoading } = useGetCouponQuery("");
+
+  const {
+    data: LabList,
+    isFetching: labLoading,
+    isFetching,
+  } = useGetlabsQuery("");
 
   const [fetchPreBooking, { isLoading: preLoading }] =
     useAddGetManualUserPreBookingDetailsMutation();
@@ -144,6 +162,10 @@ const AddBookingItems = () => {
   /* ---- Step 3: Final Booking ---- */
   const handleFinalBooking = async () => {
     try {
+      if (!user?._id) {
+        toast.info("Please select the lab first");
+        return;
+      }
       const itemsFinal = [
         ...selectedTests.map((t) => ({
           itemType: "TestForm",
@@ -159,7 +181,20 @@ const AddBookingItems = () => {
 
       const formData = new FormData();
       formData.append("userId", USER_ID);
-      formData.append("paymentType", "cash");
+      formData.append("labId", user?._id);
+      formData.append(
+        "paymentType",
+        paymentMode === "cash" ? "cash" : "online"
+      );
+      formData.append("paymentTypeMethod", paymentMode);
+      formData.append("type", bookingType);
+      if (transactionId) {
+        formData.append("qrCodeId", transactionId);
+      }
+
+      if (transactionImage) {
+        formData.append("qrImage", transactionImage);
+      }
       if (familyMemberId) formData.append("familyMemberId", familyMemberId);
       if (selectedCoupon) formData.append("offerId", selectedCoupon);
 
@@ -308,7 +343,7 @@ const AddBookingItems = () => {
         />
 
         <Table
-          rowKey="_id"
+          rowKey="code"
           loading={couponLoading}
           columns={couponColumns}
           dataSource={filteredCoupons}
@@ -316,11 +351,10 @@ const AddBookingItems = () => {
             type: "radio",
             selectedRowKeys: selectedCoupon ? [selectedCoupon] : [],
             onSelect: (record) => {
-              if (selectedCoupon === record._id) {
-                // 🔁 deselect if clicked again
+              if (selectedCoupon === record.code) {
                 setSelectedCoupon(null);
               } else {
-                setSelectedCoupon(record._id);
+                setSelectedCoupon(record.code);
               }
             },
           }}
@@ -400,6 +434,7 @@ const AddBookingItems = () => {
             </tbody>{" "}
           </table>{" "}
         </div>
+        
         <div className="flex justify-start mb-3">
           <button
             className="bg-green-600 hover:bg-green-700 px-2 py-1.5 rounded-md text-white text-xs"
@@ -429,6 +464,70 @@ const AddBookingItems = () => {
               <span>Payable Amount</span>
               <span>₹{preBookingAmount?.payableAmount}</span>
             </div>
+          </div>
+
+          <div className="w-full mb-4 mt-2">
+            <Select
+              className="w-full"
+              placeholder="Select Booking Type"
+              value={bookingType}
+              onChange={(value) => {
+                setBookingType(value);
+                setTransactionId("");
+                setTransactionImage(null);
+              }}
+            >
+              <Option value="normal">Normal</Option>
+              <Option value="walkin">Walk-in</Option>
+            </Select>
+          </div>
+
+          {bookingType === "walkin" && (
+            <div className="space-y-4">
+              {/* Transaction ID */}
+              <Input
+                placeholder="Enter Transaction ID"
+                value={transactionId}
+                onChange={(e) => setTransactionId(e.target.value)}
+              />
+
+              <div className="text-center text-gray-400 text-sm">OR</div>
+
+              {/* Upload Image */}
+              <Upload
+                beforeUpload={(file) => {
+                  setTransactionImage(file);
+                  return false; // prevent auto upload
+                }}
+                maxCount={1}
+                accept="image/*"
+              >
+                <Button icon={<UploadOutlined />}>
+                  Upload Transaction Image
+                </Button>
+              </Upload>
+
+              {transactionImage && (
+                <p className="text-sm text-green-600">
+                  Selected file: {transactionImage.name}
+                </p>
+              )}
+            </div>
+          )}
+
+          <div className="w-full mb-4 mt-4">
+            <Select
+              className="w-full"
+              placeholder="Select Payment Mode"
+              value={paymentMode}
+              onChange={(value) => setPaymentMode(value)}
+            >
+              <Option value="cash">Cash</Option>
+              <Option value="phonepe">PhonePe</Option>
+              <Option value="googlepay">Google Pay</Option>
+              <Option value="paytm">Paytm</Option>
+              <Option value="card">Card</Option>
+            </Select>
           </div>
 
           <div className="flex justify-end mt-5">

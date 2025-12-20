@@ -7,7 +7,16 @@ import {
   useAddGetManualUserFinalBookingDetailsMutation,
   useAddGetManualUserPreBookingDetailsMutation,
 } from "../../../redux/api/manualApi";
-import { Tabs, Table, Input, Button, Modal, Select, Upload } from "antd";
+import {
+  Tabs,
+  Table,
+  Input,
+  Button,
+  Modal,
+  Select,
+  Upload,
+  DatePicker,
+} from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "react-toastify";
@@ -19,10 +28,15 @@ import {
   useGetAddressListQuery,
 } from "../../../redux/api/addressApi";
 import { AddressManager } from "./AddressManager/AddressManager";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 
 /* ================= COMPONENT ================= */
+
+const disablePastDates = (current) => {
+  return current && current < dayjs().startOf("day");
+};
 
 const AddBookingItems = () => {
   const navigate = useNavigate();
@@ -57,6 +71,7 @@ const AddBookingItems = () => {
   const [couponModalOpen, setCouponModalOpen] = useState(false);
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
   const [preBookingAmount, setPreBookingAmount] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<any>(null);
 
   /* ---------------- API ---------------- */
 
@@ -82,9 +97,26 @@ const AddBookingItems = () => {
 
   const { data: TimeSlotList, refetch } =
     useGetmasterPanelApiQuery("time_slots");
+  const timeToMinutes = (timeStr) => {
+    const date = new Date(`1970-01-01 ${timeStr}`);
+    return date.getHours() * 60 + date.getMinutes();
+  };
+  const now = new Date();
+  const bufferMinutes = 60;
+  const currentWithBuffer =
+    now.getHours() * 60 + now.getMinutes() + bufferMinutes;
+  const futureSlots =
+    TimeSlotList?.response?.setting?.timeSlots?.filter((slot) => {
+      return timeToMinutes(slot.startTime) > currentWithBuffer;
+    }) || [];
 
-  const { data: addressList } = useGetAddressListQuery(USER_ID);
-  const [addNewAddress] = useAddNewAddressMutation();
+  const isTodaySelected = selectedDate
+    ? dayjs(selectedDate).isSame(dayjs(), "day")
+    : false;
+
+  const allSlots = TimeSlotList?.response?.setting?.timeSlots || [];
+
+  const visibleSlots = isTodaySelected ? futureSlots : allSlots;
 
   const [fetchPreBooking, { isLoading: preLoading }] =
     useAddGetManualUserPreBookingDetailsMutation();
@@ -199,6 +231,10 @@ const AddBookingItems = () => {
           toast.info("Please select address");
           return;
         }
+        if (!selectedDate) {
+          toast.info("Please select date");
+          return;
+        }
       }
 
       const parsedSlot = selectedSlot ? JSON.parse(selectedSlot) : null;
@@ -243,7 +279,8 @@ const AddBookingItems = () => {
           discount: preBookingAmount?.couponAppliedAmount || 0,
           finalAmount: preBookingAmount?.payableAmount,
           platformFee: preBookingAmount?.platformFee || 0,
-          collectiontype: "Lab Visit",
+          collectiontype:
+            bookingType === "normal" ? "Home Collection" : "Lab Visit",
         })
       );
 
@@ -255,7 +292,7 @@ const AddBookingItems = () => {
             endTime: parsedSlot.endTime,
           })
         );
-
+        formData.append("bookingDate", selectedDate);
         formData.append("addressId", selectedAddressId);
 
         formData.append(
@@ -290,27 +327,6 @@ const AddBookingItems = () => {
     ) || [];
 
   /* ---------------- SAVE ADDRESSES ---------------- */
-
-  const handleSaveAddress = async (values, place) => {
-    const payload = {
-      userId: USER_ID,
-      addressType: "normal",
-      houseNo: values.houseNo,
-      streetName: values.apartmentName,
-      landmark: values.landmark,
-      description: place.formatted_address,
-      latitude: place.geometry.location.lat(),
-      longitude: place.geometry.location.lng(),
-      postalCode: values.postalCode || "",
-    };
-
-    const res = await addNewAddress(payload).unwrap();
-
-    // auto select newly added address
-    setSelectedAddressId(res.response._id);
-    setSelectedAddress(res.response);
-    setAddressModalOpen(false);
-  };
 
   /* ================= UI ================= */
 
@@ -588,19 +604,32 @@ const AddBookingItems = () => {
 
           {bookingType === "normal" && (
             <div className="mb-4">
+              <DatePicker
+                className="w-full"
+                placeholder="Select Date"
+                disabledDate={disablePastDates}
+                onChange={(date) => {
+                  setSelectedDate(date?.format("YYYY-MM-DD"));
+                  setSelectedSlot(null);
+                }}
+              />
+            </div>
+          )}
+
+          {bookingType === "normal" && (
+            <div className="mb-4">
               <Select
                 className="w-full"
                 placeholder="Select Time Slot"
                 value={selectedSlot}
                 onChange={(val) => setSelectedSlot(val)}
+                disabled={!selectedDate}
               >
-                {TimeSlotList?.response?.setting?.timeSlots?.map(
-                  (slot, idx) => (
-                    <Option key={idx} value={JSON.stringify(slot)}>
-                      {slot.startTime} - {slot.endTime}
-                    </Option>
-                  )
-                )}
+                {visibleSlots.map((slot, idx) => (
+                  <Select.Option key={idx} value={JSON.stringify(slot)}>
+                    {slot.startTime} - {slot.endTime}
+                  </Select.Option>
+                ))}
               </Select>
             </div>
           )}
@@ -614,7 +643,12 @@ const AddBookingItems = () => {
           )}
           {bookingType === "normal" && (
             <div className="mb-4">
-              <Button type="primary" onClick={() => {setAddressModalOpen(true), setSelectedAddress(null);}}>
+              <Button
+                type="primary"
+                onClick={() => {
+                  setAddressModalOpen(true), setSelectedAddress(null);
+                }}
+              >
                 {selectedAddress ? "Change Address" : "Select Address"}
               </Button>
             </div>

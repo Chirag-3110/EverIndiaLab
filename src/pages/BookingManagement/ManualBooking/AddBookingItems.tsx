@@ -13,7 +13,12 @@ import { useLocation, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import { formatDate } from "../../../utils/utils";
 import { useGetlabsQuery } from "../../../redux/api/labsApi";
-import { useAuth } from "../../../context/AuthContext";
+import { useGetmasterPanelApiQuery } from "../../../redux/api/masterPanelApi";
+import {
+  useAddNewAddressMutation,
+  useGetAddressListQuery,
+} from "../../../redux/api/addressApi";
+import { AddressManager } from "./AddressManager/AddressManager";
 
 const { Option } = Select;
 
@@ -22,8 +27,7 @@ const { Option } = Select;
 const AddBookingItems = () => {
   const navigate = useNavigate();
   const { state } = useLocation();
-  const { user } = useAuth();
-  console.log(user?._id);
+
   const USER_ID = state?.userId;
   const familyMemberId = state?.familyMemberId;
 
@@ -36,12 +40,17 @@ const AddBookingItems = () => {
   const [selectedTests, setSelectedTests] = useState<any[]>([]);
   const [selectedPackages, setSelectedPackages] = useState<any[]>([]);
   const [bookingItems, setBookingItems] = useState<any[]>([]);
+  const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
   const [bookingType, setBookingType] = useState<"normal" | "walkin" | null>(
     null
   );
   const [transactionId, setTransactionId] = useState("");
   const [transactionImage, setTransactionImage] = useState<File | null>(null);
   const [paymentMode, setPaymentMode] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
 
   const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
   const [couponSearch, setCouponSearch] = useState("");
@@ -70,6 +79,12 @@ const AddBookingItems = () => {
     isFetching: labLoading,
     isFetching,
   } = useGetlabsQuery("");
+
+  const { data: TimeSlotList, refetch } =
+    useGetmasterPanelApiQuery("time_slots");
+
+  const { data: addressList } = useGetAddressListQuery(USER_ID);
+  const [addNewAddress] = useAddNewAddressMutation();
 
   const [fetchPreBooking, { isLoading: preLoading }] =
     useAddGetManualUserPreBookingDetailsMutation();
@@ -162,8 +177,8 @@ const AddBookingItems = () => {
   /* ---- Step 3: Final Booking ---- */
   const handleFinalBooking = async () => {
     try {
-      if (!user?._id) {
-        toast.info("Please select the lab first");
+      if (!selectedLabId) {
+        toast.info("Please select the lab first.");
         return;
       }
       if (!bookingType) {
@@ -174,6 +189,20 @@ const AddBookingItems = () => {
         toast.info("Please select the payment mode.");
         return;
       }
+
+      if (bookingType === "normal") {
+        if (!selectedSlot) {
+          toast.info("Please select a time slot");
+          return;
+        }
+        if (!selectedAddressId) {
+          toast.info("Please select address");
+          return;
+        }
+      }
+
+      const parsedSlot = selectedSlot ? JSON.parse(selectedSlot) : null;
+
       const itemsFinal = [
         ...selectedTests.map((t) => ({
           itemType: "TestForm",
@@ -189,7 +218,7 @@ const AddBookingItems = () => {
 
       const formData = new FormData();
       formData.append("userId", USER_ID);
-      formData.append("labId", user?._id);
+      formData.append("labId", selectedLabId);
       formData.append(
         "paymentType",
         paymentMode === "cash" ? "cash" : "online"
@@ -218,6 +247,33 @@ const AddBookingItems = () => {
         })
       );
 
+      if (bookingType === "normal") {
+        formData.append(
+          "slot",
+          JSON.stringify({
+            startTime: parsedSlot.startTime,
+            endTime: parsedSlot.endTime,
+          })
+        );
+
+        formData.append("addressId", selectedAddressId);
+
+        formData.append(
+          "userAddress",
+          JSON.stringify({
+            addressLine1: selectedAddress.houseNo,
+            addressLine2: selectedAddress.landmark,
+            city: selectedAddress.city,
+            state: selectedAddress.state,
+            postalCode: selectedAddress.postalCode,
+            coordinates: {
+              lat: selectedAddress.latitude,
+              lng: selectedAddress.longitude,
+            },
+          })
+        );
+      }
+
       await finalBooking(formData).unwrap();
       toast.success("Booking completed successfully");
       navigate("/booking-list");
@@ -232,6 +288,29 @@ const AddBookingItems = () => {
     couponRes?.message?.coupons?.filter((c: any) =>
       c.code.toLowerCase().includes(couponSearch.toLowerCase())
     ) || [];
+
+  /* ---------------- SAVE ADDRESSES ---------------- */
+
+  const handleSaveAddress = async (values, place) => {
+    const payload = {
+      userId: USER_ID,
+      addressType: "normal",
+      houseNo: values.houseNo,
+      streetName: values.apartmentName,
+      landmark: values.landmark,
+      description: place.formatted_address,
+      latitude: place.geometry.location.lat(),
+      longitude: place.geometry.location.lng(),
+      postalCode: values.postalCode || "",
+    };
+
+    const res = await addNewAddress(payload).unwrap();
+
+    // auto select newly added address
+    setSelectedAddressId(res.response._id);
+    setSelectedAddress(res.response);
+    setAddressModalOpen(false);
+  };
 
   /* ================= UI ================= */
 
@@ -407,7 +486,7 @@ const AddBookingItems = () => {
           </div>{" "}
           <div className="text-right text-sm text-gray-500">
             {" "}
-            <p>Date: {new Date().toLocaleDateString()}</p> <p>Payment: Cash</p>{" "}
+            <p>Date: {new Date().toLocaleDateString()}</p>
           </div>{" "}
         </div>
         {/* Items Table */}{" "}
@@ -441,6 +520,24 @@ const AddBookingItems = () => {
               ))}{" "}
             </tbody>{" "}
           </table>{" "}
+        </div>
+        <div className="w-full mb-2">
+          <Select
+            className="w-full" // ✅ full width
+            placeholder="Select Lab"
+            optionFilterProp="children"
+            showSearch
+            disabled={isFetching}
+            loading={isFetching}
+            value={selectedLabId} // ✅ controlled
+            onChange={(value) => setSelectedLabId(value)} // ✅ store ID
+          >
+            {LabList?.response?.labs?.map((lab) => (
+              <Option key={lab._id} value={lab._id}>
+                {lab.name}
+              </Option>
+            ))}
+          </Select>
         </div>
         <div className="flex justify-start mb-3">
           <button
@@ -489,6 +586,40 @@ const AddBookingItems = () => {
             </Select>
           </div>
 
+          {bookingType === "normal" && (
+            <div className="mb-4">
+              <Select
+                className="w-full"
+                placeholder="Select Time Slot"
+                value={selectedSlot}
+                onChange={(val) => setSelectedSlot(val)}
+              >
+                {TimeSlotList?.response?.setting?.timeSlots?.map(
+                  (slot, idx) => (
+                    <Option key={idx} value={JSON.stringify(slot)}>
+                      {slot.startTime} - {slot.endTime}
+                    </Option>
+                  )
+                )}
+              </Select>
+            </div>
+          )}
+
+          {bookingType === "normal" && (
+            <div className="mb-4">
+              <span className="font-medium">Selected Address: </span>{" "}
+              {selectedAddress &&
+                `  ${selectedAddress.houseNo}, ${selectedAddress.streetName}, ${selectedAddress.description}`}
+            </div>
+          )}
+          {bookingType === "normal" && (
+            <div className="mb-4">
+              <Button type="primary" onClick={() => {setAddressModalOpen(true), setSelectedAddress(null);}}>
+                {selectedAddress ? "Change Address" : "Select Address"}
+              </Button>
+            </div>
+          )}
+
           {bookingType === "walkin" && (
             <div className="space-y-4">
               {/* Transaction ID */}
@@ -509,9 +640,7 @@ const AddBookingItems = () => {
                 maxCount={1}
                 accept="image/*"
               >
-                <Button icon={<UploadOutlined />}>
-                  Upload QR Image
-                </Button>
+                <Button icon={<UploadOutlined />}>Upload QR Image</Button>
               </Upload>
 
               {transactionImage && (
@@ -548,6 +677,24 @@ const AddBookingItems = () => {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      <Modal
+        title="Manage Address"
+        open={addressModalOpen}
+        onCancel={() => setAddressModalOpen(false)}
+        footer={null}
+        width={700}
+      >
+        <AddressManager
+          userId={USER_ID}
+          selectedAddressId={selectedAddressId}
+          onSelect={(addr) => {
+            setSelectedAddressId(addr._id);
+            setSelectedAddress(addr);
+            setAddressModalOpen(false);
+          }}
+        />
       </Modal>
     </div>
   );

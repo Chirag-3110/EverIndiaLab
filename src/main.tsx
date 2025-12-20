@@ -12,9 +12,12 @@ import { ToastContainer, toast, Slide } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { CustomToastContainer } from "./components/CustomToastContainer/CustomToastContainer";
 import { store } from "./redux/store/store";
+import { GoogleMapsProvider } from "./hooks/GoogleMapsProvider";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
+    <GoogleMapsProvider>
+
     <Provider store={store}>
       <AuthProvider>
         <ThemeProvider>
@@ -25,5 +28,6 @@ createRoot(document.getElementById("root")!).render(
         </ThemeProvider>
       </AuthProvider>
     </Provider>
+    </GoogleMapsProvider>
   </StrictMode>
 );

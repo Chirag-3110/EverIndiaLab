@@ -31,10 +31,10 @@ export default function UpdateProfile() {
   const [updateUserProfile, { isLoading: updating }] =
     useUpdateUserProfileMutation();
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_MAP_KEY,
-    libraries: libs,
-  });
+  // const { isLoaded } = useJsApiLoader({
+  //   googleMapsApiKey: import.meta.env.VITE_MAP_KEY,
+  //   libraries: libs,
+  // });
 
   // Prefill
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function UpdateProfile() {
   // Google Autocomplete
   useEffect(() => {
     if (
-      !isLoaded ||
+      
       typeof window === "undefined" ||
       !window.google ||
       !addressRef.current?.input
@@ -89,7 +89,7 @@ export default function UpdateProfile() {
         address: place.formatted_address,
       });
     });
-  }, [isLoaded]);
+  }, []);
 
   const handleSubmit = async (values: any) => {
     if (

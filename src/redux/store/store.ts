@@ -14,6 +14,7 @@ import { accessPermissionApi } from "../api/accessPermissionApi";
 import { manualApi } from "../api/manualApi";
 import { couponApi } from "../api/couponApi";
 import { labsApi } from "../api/labsApi";
+import { addressApi } from "../api/addressApi";
 
 export const store = configureStore({
   reducer: {
@@ -32,6 +33,7 @@ export const store = configureStore({
     [manualApi.reducerPath]: manualApi.reducer,
     [couponApi.reducerPath]: couponApi.reducer,
     [labsApi.reducerPath]: labsApi.reducer,
+    [addressApi.reducerPath]: addressApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -50,5 +52,6 @@ export const store = configureStore({
       manualApi.middleware,
       couponApi.middleware,
       labsApi.middleware,
+      addressApi.middleware,
     ]),
 });

@@ -33,7 +33,7 @@ const navItems: any = [
     icon: <File />,
     name: "Create Booking",
     path: "/manual-booking",
-    newD: "manualbookings",
+    permission: "manualbookings",
   },
   {
     name: "Phlebotomist",

@@ -333,7 +333,7 @@ const BookingDetails = () => {
         <Button onClick={() => navigate(-1)} style={{ marginBottom: 20 }}>
           ← Back to Bookings
         </Button>
-        <div className="flex justify-end">
+        <div className="flex justify-end items-center gap-4">
           {/* <label htmlFor="">Payment Status:</label> */}
           <p
             className={`font-bold uppercase px-2 py-1 rounded ${
@@ -344,6 +344,16 @@ const BookingDetails = () => {
           >
             {booking?.response?.data?.paymentStatus}
           </p>
+          {booking?.response?.data?.invoicePath && (
+            <a
+              href={booking?.response?.data?.invoicePath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center gap-2 font-semibold normal px-3 py-1.5 rounded transition text-blue-700 bg-blue-100 hover:bg-blue-200`}
+            >
+              <File size={16} />Download Invoice
+            </a>
+          )}
         </div>
       </div>
 

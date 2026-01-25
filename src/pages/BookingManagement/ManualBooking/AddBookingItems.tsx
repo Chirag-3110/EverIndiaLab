@@ -363,8 +363,24 @@ const AddBookingItems = () => {
                   columns={testColumns}
                   dataSource={testRes?.response?.testForms || []}
                   rowSelection={{
+                    preserveSelectedRowKeys: true,
                     selectedRowKeys: selectedTests.map((i) => i._id),
-                    onChange: (_, rows) => setSelectedTests(rows),
+                    onChange: (selectedRowKeys, selectedRows) => {
+                      setSelectedTests((prev) => {
+                        const map = new Map(
+                          prev.map((item) => [item._id, item])
+                        );
+
+                        selectedRows.forEach((row: any) => {
+                          map.set(row._id, row);
+                        });
+
+                        // Remove unselected rows
+                        return Array.from(map.values()).filter((item) =>
+                          selectedRowKeys.includes(item._id)
+                        );
+                      });
+                    },
                   }}
                   pagination={{
                     current: testRes?.response?.pagination?.currentPage || page,
@@ -399,8 +415,23 @@ const AddBookingItems = () => {
                   columns={packageColumns}
                   dataSource={packageRes?.response?.packages || []}
                   rowSelection={{
+                    preserveSelectedRowKeys: true,
                     selectedRowKeys: selectedPackages.map((i) => i._id),
-                    onChange: (_, rows) => setSelectedPackages(rows),
+                    onChange: (selectedRowKeys, selectedRows) => {
+                      setSelectedPackages((prev) => {
+                        const map = new Map(
+                          prev.map((item) => [item._id, item])
+                        );
+
+                        selectedRows.forEach((row: any) => {
+                          map.set(row._id, row);
+                        });
+
+                        return Array.from(map.values()).filter((item) =>
+                          selectedRowKeys.includes(item._id)
+                        );
+                      });
+                    },
                   }}
                   pagination={{
                     current: page,

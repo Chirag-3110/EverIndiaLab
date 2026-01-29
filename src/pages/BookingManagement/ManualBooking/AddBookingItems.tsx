@@ -16,6 +16,7 @@ import {
   Select,
   Upload,
   DatePicker,
+  Tag,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router";
@@ -23,12 +24,9 @@ import { toast } from "react-toastify";
 import { formatDate } from "../../../utils/utils";
 import { useGetlabsQuery } from "../../../redux/api/labsApi";
 import { useGetmasterPanelApiQuery } from "../../../redux/api/masterPanelApi";
-import {
-  useAddNewAddressMutation,
-  useGetAddressListQuery,
-} from "../../../redux/api/addressApi";
 import { AddressManager } from "./AddressManager/AddressManager";
 import dayjs from "dayjs";
+import { useGetdrQuery } from "../../../redux/api/drApi";
 
 const { Option } = Select;
 
@@ -55,9 +53,11 @@ const AddBookingItems = () => {
   const [selectedPackages, setSelectedPackages] = useState<any[]>([]);
   const [bookingItems, setBookingItems] = useState<any[]>([]);
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
+  const [selectedDRId, setSelectedDRId] = useState<string | null>(null);
   const [bookingType, setBookingType] = useState<"normal" | "walkin" | null>(
     null
   );
+
   const [transactionId, setTransactionId] = useState("");
   const [transactionImage, setTransactionImage] = useState<File | null>(null);
   const [paymentMode, setPaymentMode] = useState<string | null>(null);
@@ -67,6 +67,7 @@ const AddBookingItems = () => {
   const [addressModalOpen, setAddressModalOpen] = useState(false);
 
   const [selectedCoupon, setSelectedCoupon] = useState<string | null>(null);
+  const [manualCoupon, setManualCoupon] = useState("");
   const [couponSearch, setCouponSearch] = useState("");
   const [couponModalOpen, setCouponModalOpen] = useState(false);
   const [summaryModalOpen, setSummaryModalOpen] = useState(false);
@@ -94,9 +95,11 @@ const AddBookingItems = () => {
     isFetching: labLoading,
     isFetching,
   } = useGetlabsQuery("");
+  const { data: drList, isFetching: drLoading } = useGetdrQuery({});
 
   const { data: TimeSlotList, refetch } =
     useGetmasterPanelApiQuery("time_slots");
+
   const timeToMinutes = (timeStr) => {
     const date = new Date(`1970-01-01 ${timeStr}`);
     return date.getHours() * 60 + date.getMinutes();
@@ -191,10 +194,18 @@ const AddBookingItems = () => {
   /* ---- Step 2: Apply Coupon (Re-call Pre Booking) ---- */
   const handleApplyCoupon = async () => {
     try {
+      const couponCodeToUse = selectedCoupon;
+      const ManualCouponCodeToUse = manualCoupon;
+      if (!couponCodeToUse) {
+        toast.error("Please enter or select a coupon");
+        return;
+      }
+
       const res = await fetchPreBooking({
         userId: USER_ID,
         items: bookingItems,
-        couponId: selectedCoupon!,
+        couponId: couponCodeToUse,
+        // otherDiscount: ManualCouponCodeToUse,
       }).unwrap();
 
       const { message, ...amount } = res.response;
@@ -211,6 +222,10 @@ const AddBookingItems = () => {
     try {
       if (!selectedLabId) {
         toast.info("Please select the lab first.");
+        return;
+      }
+      if (!selectedDRId) {
+        toast.info("Please select the Doctor first.");
         return;
       }
       if (!bookingType) {
@@ -255,6 +270,7 @@ const AddBookingItems = () => {
       const formData = new FormData();
       formData.append("userId", USER_ID);
       formData.append("labId", selectedLabId);
+      formData.append("doctorId", selectedDRId);
       formData.append(
         "paymentType",
         paymentMode === "cash" ? "cash" : "online"
@@ -277,6 +293,7 @@ const AddBookingItems = () => {
         JSON.stringify({
           total: preBookingAmount?.totalOriginalAmount,
           discount: preBookingAmount?.couponAppliedAmount || 0,
+          otherDiscount: manualCoupon || 0,
           finalAmount: preBookingAmount?.payableAmount,
           platformFee: preBookingAmount?.platformFee || 0,
           collectiontype:
@@ -311,8 +328,10 @@ const AddBookingItems = () => {
         );
       }
 
-      await finalBooking(formData).unwrap();
+      const res = await finalBooking(formData).unwrap();
+      console.log(res);
       toast.success("Booking completed successfully");
+      // navigate(`/booking-list/booking-details/${res._id}`);
       navigate("/booking-list");
     } catch (err: any) {
       toast.error(err?.data?.message || "Final booking failed");
@@ -325,8 +344,6 @@ const AddBookingItems = () => {
     couponRes?.message?.coupons?.filter((c: any) =>
       c.code.toLowerCase().includes(couponSearch.toLowerCase())
     ) || [];
-
-  /* ---------------- SAVE ADDRESSES ---------------- */
 
   /* ================= UI ================= */
 
@@ -348,14 +365,51 @@ const AddBookingItems = () => {
             label: "Tests",
             children: (
               <>
-                <Input.Search
+                <Input
                   placeholder="Search test"
-                  onSearch={(v) => {
-                    setSearchText(v);
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onPressEnter={() => {
+                    setSearchText(searchText);
                     setPage(1);
                   }}
+                  allowClear
                   className="mb-3"
                 />
+
+                {/* Selected Tests Preview */}
+                {selectedTests.length > 0 && (
+                  <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-medium text-blue-800">
+                        Selected Tests ({selectedTests.length})
+                      </span>
+                      <Button
+                        size="small"
+                        danger
+                        onClick={() => setSelectedTests([])}
+                      >
+                        Clear All
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedTests.map((test) => (
+                        <Tag
+                          key={test._id}
+                          closable
+                          onClose={() => {
+                            setSelectedTests((prev) =>
+                              prev.filter((item) => item._id !== test._id)
+                            );
+                          }}
+                          className="bg-blue-100 text-blue-800 border-blue-300"
+                        >
+                          {test.name || test.title || "Test"}
+                        </Tag>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <Table
                   rowKey="_id"
@@ -370,12 +424,9 @@ const AddBookingItems = () => {
                         const map = new Map(
                           prev.map((item) => [item._id, item])
                         );
-
                         selectedRows.forEach((row: any) => {
                           map.set(row._id, row);
                         });
-
-                        // Remove unselected rows
                         return Array.from(map.values()).filter((item) =>
                           selectedRowKeys.includes(item._id)
                         );
@@ -402,12 +453,49 @@ const AddBookingItems = () => {
               <>
                 <Input.Search
                   placeholder="Search package"
-                  onSearch={(v) => {
-                    setSearchText(v);
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onPressEnter={() => {
+                    setSearchText(searchText);
                     setPage(1);
                   }}
+                  allowClear
                   className="mb-3"
                 />
+
+                {/* Selected Packages Preview */}
+                {selectedPackages.length > 0 && (
+                  <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-medium text-green-800">
+                        Selected Packages ({selectedPackages.length})
+                      </span>
+                      <Button
+                        size="small"
+                        danger
+                        onClick={() => setSelectedPackages([])}
+                      >
+                        Clear All
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedPackages.map((pkg) => (
+                        <Tag
+                          key={pkg._id}
+                          closable
+                          onClose={() => {
+                            setSelectedPackages((prev) =>
+                              prev.filter((item) => item._id !== pkg._id)
+                            );
+                          }}
+                          className="bg-green-100 text-green-800 border-green-300"
+                        >
+                          {pkg.name || pkg.title || "Package"}
+                        </Tag>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <Table
                   rowKey="_id"
@@ -422,11 +510,9 @@ const AddBookingItems = () => {
                         const map = new Map(
                           prev.map((item) => [item._id, item])
                         );
-
                         selectedRows.forEach((row: any) => {
                           map.set(row._id, row);
                         });
-
                         return Array.from(map.values()).filter((item) =>
                           selectedRowKeys.includes(item._id)
                         );
@@ -460,60 +546,6 @@ const AddBookingItems = () => {
           Next
         </Button>
       </div>
-
-      {/* ================= COUPON MODAL ================= */}
-      <Modal
-        title="Select Coupon"
-        open={couponModalOpen}
-        onCancel={() => setCouponModalOpen(false)}
-        footer={null}
-      >
-        <Input.Search
-          placeholder="Search coupon code"
-          value={couponSearch}
-          onChange={(e) => setCouponSearch(e.target.value)}
-          className="mb-3"
-          allowClear
-        />
-
-        <Table
-          rowKey="code"
-          loading={couponLoading}
-          columns={couponColumns}
-          dataSource={filteredCoupons}
-          rowSelection={{
-            type: "radio",
-            selectedRowKeys: selectedCoupon ? [selectedCoupon] : [],
-            onSelect: (record) => {
-              if (selectedCoupon === record.code) {
-                setSelectedCoupon(null);
-              } else {
-                setSelectedCoupon(record.code);
-              }
-            },
-          }}
-          pagination={false}
-        />
-
-        <div className="flex justify-end items-center mt-4 gap-2">
-          <Button
-            type="primary"
-            loading={preLoading}
-            disabled={!selectedCoupon}
-            onClick={handleApplyCoupon}
-          >
-            Apply Coupon
-          </Button>
-          {selectedCoupon && (
-            <p
-              className="text-sm text-center bg-red-50 w-[200px] px-4 py-2 rounded-md text-red-500 cursor-pointer"
-              onClick={() => setSelectedCoupon(null)}
-            >
-              Remove applied coupon
-            </p>
-          )}
-        </div>
-      </Modal>
 
       {/* ================= SUMMARY MODAL ================= */}
       <Modal
@@ -568,16 +600,17 @@ const AddBookingItems = () => {
             </tbody>{" "}
           </table>{" "}
         </div>
+        {/* LAB Selection */}
         <div className="w-full mb-2">
           <Select
-            className="w-full" // ✅ full width
+            className="w-full"
             placeholder="Select Lab"
             optionFilterProp="children"
             showSearch
             disabled={isFetching}
             loading={isFetching}
-            value={selectedLabId} // ✅ controlled
-            onChange={(value) => setSelectedLabId(value)} // ✅ store ID
+            value={selectedLabId}
+            onChange={(value) => setSelectedLabId(value)}
           >
             {LabList?.response?.labs?.map((lab) => (
               <Option key={lab._id} value={lab._id}>
@@ -586,7 +619,26 @@ const AddBookingItems = () => {
             ))}
           </Select>
         </div>
-        <div className="flex justify-start mb-3">
+        {/* DR Selection */}
+        <div className="w-full mb-2">
+          <Select
+            className="w-full"
+            placeholder="Select Doctor"
+            optionFilterProp="children"
+            showSearch
+            disabled={drLoading}
+            loading={drLoading}
+            value={selectedDRId}
+            onChange={(value) => setSelectedDRId(value)}
+          >
+            {drList?.response?.data?.map((dr) => (
+              <Option key={dr._id} value={dr._id}>
+                {dr.name}
+              </Option>
+            ))}
+          </Select>
+        </div>
+        <div className="flex flex-col gap-2 justify-start mb-3">
           <button
             className="bg-green-600 hover:bg-green-700 px-2 py-1.5 rounded-md text-white text-xs"
             onClick={() => setCouponModalOpen(true)}
@@ -615,6 +667,21 @@ const AddBookingItems = () => {
               <span>Payable Amount</span>
               <span>₹{preBookingAmount?.payableAmount}</span>
             </div>
+          </div>
+
+          <div className="w-full mb-4 mt-4">
+            <Select
+              className="w-full"
+              placeholder="Select Payment Mode"
+              value={paymentMode}
+              onChange={(value) => setPaymentMode(value)}
+            >
+              <Option value="cash">Cash</Option>
+              <Option value="phonepe">PhonePe</Option>
+              <Option value="googlepay">Google Pay</Option>
+              <Option value="paytm">Paytm</Option>
+              <Option value="card">Card</Option>
+            </Select>
           </div>
 
           <div className="w-full mb-4 mt-2">
@@ -700,7 +767,7 @@ const AddBookingItems = () => {
               <Upload
                 beforeUpload={(file) => {
                   setTransactionImage(file);
-                  return false; // prevent auto upload
+                  return false;
                 }}
                 maxCount={1}
                 accept="image/*"
@@ -716,21 +783,6 @@ const AddBookingItems = () => {
             </div>
           )}
 
-          <div className="w-full mb-4 mt-4">
-            <Select
-              className="w-full"
-              placeholder="Select Payment Mode"
-              value={paymentMode}
-              onChange={(value) => setPaymentMode(value)}
-            >
-              <Option value="cash">Cash</Option>
-              <Option value="phonepe">PhonePe</Option>
-              <Option value="googlepay">Google Pay</Option>
-              <Option value="paytm">Paytm</Option>
-              <Option value="card">Card</Option>
-            </Select>
-          </div>
-
           <div className="flex justify-end mt-5">
             <Button
               type="primary"
@@ -743,6 +795,95 @@ const AddBookingItems = () => {
           </div>
         </div>
       </Modal>
+
+      {/* ================= COUPON MODAL ================= */}
+      <Modal
+        title="Select Coupon"
+        open={couponModalOpen}
+        onCancel={() => setCouponModalOpen(false)}
+        footer={null}
+      >
+        <p className="text-red-600 italic mb-4">
+          <span className="text-red-600 italic font-semibold">Note:</span>{" "}
+          Either enter manual discount amount, select coupon code from the list,{" "}
+          <strong>or use both together</strong>.
+        </p>
+        <Input
+          className="uppercase"
+          placeholder="Enter manual discount amount"
+          value={manualCoupon}
+          onChange={(e) => {
+            const value = e.target.value.replace(/[^0-9]/g, "");
+            setManualCoupon(value);
+          }}
+          onKeyPress={(e) => {
+            if (!/[0-9]/.test(e.key)) {
+              e.preventDefault();
+            }
+          }}
+          onPaste={(e) => {
+            e.preventDefault();
+            const pastedData = e.clipboardData
+              .getData("text")
+              .replace(/[^0-9]/g, "");
+            setManualCoupon(pastedData);
+          }}
+          maxLength={10}
+        />
+
+        <p className="text-center p-1 font-bold">OR</p>
+
+        <Input.Search
+          placeholder="Search coupon code"
+          value={couponSearch}
+          onChange={(e) => setCouponSearch(e.target.value)}
+          className="mb-3"
+          allowClear
+        />
+
+        <Table
+          rowKey="code"
+          loading={couponLoading}
+          columns={couponColumns}
+          dataSource={filteredCoupons}
+          rowSelection={{
+            type: "radio",
+            selectedRowKeys: selectedCoupon ? [selectedCoupon] : [],
+            onSelect: (record) => {
+              if (selectedCoupon === record.code) {
+                setSelectedCoupon(null);
+              } else {
+                setSelectedCoupon(record.code);
+              }
+            },
+          }}
+          pagination={false}
+        />
+
+        <div className="flex justify-end items-center mt-4 gap-2">
+          <Button
+            type="primary"
+            loading={preLoading}
+            disabled={!manualCoupon?.trim() && !selectedCoupon}
+            onClick={handleApplyCoupon}
+          >
+            Apply Coupon
+          </Button>
+          {selectedCoupon && (
+            <p
+              className="text-sm text-center bg-red-50 w-[200px] px-4 py-2 rounded-md text-red-500 cursor-pointer"
+              onClick={() => {
+                setSelectedCoupon(null);
+                setManualCoupon("");
+              }}
+            >
+              Remove applied coupon
+            </p>
+          )}
+        </div>
+      </Modal>
+
+      {/* ================ ADDRESS MANAGER MODAL ================= */}
 
       <Modal
         title="Manage Address"

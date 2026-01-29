@@ -16,6 +16,7 @@ import {
   useAssignStaffBookingMutation,
   useGetBookingDetailsQuery,
   useGetBookingQuery,
+  useGetRemoveReportMutation,
   useMarkAsCompleteBookingMutation,
   useMarkedAsPaidBookingMutation,
   useUploadReportToBookingMutation,
@@ -24,11 +25,10 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { useGetStaffsQuery } from "../../redux/api/staffApi";
 import { toast } from "react-toastify";
 import { bookingStatusColors, formatDateTime } from "../../utils/utils";
-import { File, UploadCloud } from "lucide-react";
+import { File, PenBoxIcon, UploadCloud } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 const BookingDetails = () => {
- 
   const navigate = useNavigate();
   const { id } = useParams();
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -51,6 +51,7 @@ const BookingDetails = () => {
   const [form] = Form.useForm();
   const [selectedTests, setSelectedTests] = useState([]);
   const [includedTestsDetails, setIncludedTestsDetails] = useState([]);
+  const [updateIndex, setUpdateIndex] = useState<number | null>(null);
 
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -64,6 +65,10 @@ const BookingDetails = () => {
     useAssignStaffBookingMutation();
   const [markedAsPaidBooking, { isLoading: isPaying }] =
     useMarkedAsPaidBookingMutation();
+
+  const [getRemoveReport, { isLoading: isRemoving, error }] =
+    useGetRemoveReportMutation();
+
   const { data: StaffList, isFetching } = useGetStaffsQuery({
     searchText,
     page,
@@ -326,6 +331,25 @@ const BookingDetails = () => {
 
   console.log(allReportsUploaded);
 
+  const handleUpdateReportFile = async (index: number) => {
+    const fileUrl = bookingItems?.[0]?.reportFiles?.[index];
+    if (!fileUrl) return;
+
+    const oldFileName = fileUrl.split("/uploads/")[1];
+
+    const formData = new FormData();
+    // formData.append("id", bookingItems?.[0]?._id);
+    formData.append("id", booking?._id);
+    formData.append("itemId", bookingItems?.[0]?._id);
+    formData.append("oldFileName", oldFileName);
+
+    files.forEach((file) => {
+      formData.append("image", file);
+    });
+
+    const res = await getRemoveReport({ body: formData }).unwrap();
+  };
+
   return (
     <div>
       <PageBreadcrumb pageTitle={"Booking Details"} />
@@ -351,7 +375,8 @@ const BookingDetails = () => {
               rel="noopener noreferrer"
               className={`inline-flex items-center gap-2 font-semibold normal px-3 py-1.5 rounded transition text-blue-700 bg-blue-100 hover:bg-blue-200`}
             >
-              <File size={16} />Download Invoice
+              <File size={16} />
+              Download Invoice
             </a>
           )}
         </div>
@@ -522,24 +547,43 @@ const BookingDetails = () => {
                 bookingItems?.[0]?.reportFiles.length > 0 ? (
                   <div className="flex flex-col gap-1">
                     {bookingItems?.[0]?.reportFiles.map((fileUrl, index) => (
-                      <Button
-                        key={index}
-                        type="primary"
-                        size="small"
-                        href={fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        icon={<File size={16} />}
-                        style={{
-                          background: "#1890ff",
-                          borderColor: "#1890ff",
-                          borderRadius: "8px",
-                          fontSize: "14px",
-                          height: "36px",
-                        }}
-                      >
-                        Report {index + 1}
-                      </Button>
+                      <div key={index} className="flex items-center gap-2">
+                        <Button
+                          key={index}
+                          type="primary"
+                          size="small"
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          icon={<File size={16} />}
+                          style={{
+                            background: "#1890ff",
+                            borderColor: "#1890ff",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            height: "36px",
+                          }}
+                        >
+                          Report {index + 1}
+                        </Button>
+                        <Button
+                          danger
+                          size="small"
+                          onClick={() => {
+                            setSelectedUploadItem(bookingItems?.[0]);
+                            setUpdateIndex(index);
+                            setUploadModalOpen(true);
+                          }}
+                          style={{
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            height: "34px",
+                            flex: 1,
+                          }}
+                        >
+                          <PenBoxIcon />
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -835,28 +879,43 @@ const BookingDetails = () => {
             loading={isUploading}
             disabled={files.length === 0}
             onClick={async () => {
-              if (files.length > 0) {
-                const formData = new FormData();
+              if (files.length === 0) return;
 
-                files.forEach((file) => {
-                  formData.append("images", file);
-                });
+              try {
+                // 🔁 UPDATE FLOW
+                if (updateIndex !== null) {
+                  await handleUpdateReportFile(updateIndex);
+                  toast.success("Report updated successfully");
+                }
+                // ➕ ADD FLOW (UNCHANGED)
+                else {
+                  const formData = new FormData();
+                  files.forEach((file) => {
+                    formData.append("images", file);
+                  });
 
-                formData.append("itemId", selectedUploadItem?._id);
-                formData.append("bookingId", booking?.response?.data?._id);
+                  formData.append(
+                    "itemId",
+                    selectedUploadItem?.itemid || selectedUploadItem?._id
+                  );
+                  formData.append("bookingId", booking?._id);
 
-                await uploadReportToBooking({
-                  fd: formData,
-                  id: booking?.response?.data?._id,
-                })
-                  .unwrap()
-                  .then(() => toast.success("Reports uploaded successfully"))
-                  .catch(() => toast.error("Failed to upload reports"));
+                  await uploadReportToBooking({
+                    fd: formData,
+                    id: booking?._id,
+                  }).unwrap();
+
+                  toast.success("Reports uploaded successfully");
+                }
+              } catch (err) {
+                toast.error("Operation failed");
               }
 
+              // cleanup
               setUploadModalOpen(false);
               setFiles([]);
               setPreviews([]);
+              setUpdateIndex(null);
             }}
           >
             Confirm

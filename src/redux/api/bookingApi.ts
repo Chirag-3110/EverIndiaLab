@@ -97,6 +97,16 @@ export const bookingApi = createApi({
       }),
       invalidatesTags: ["Booking"],
     }),
+
+    // Get Report Api
+    getRemoveReport: builder.mutation({
+      query: ({ body }) => ({
+        url: `booking/update-report-to-booking-item`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Booking"],
+    }),
   }),
 });
 
@@ -110,4 +120,5 @@ export const {
   useMarkAsCompleteBookingMutation,
   useUploadReportToBookingMutation,
   useMarkedAsPaidBookingMutation,
+  useGetRemoveReportMutation,
 } = bookingApi;

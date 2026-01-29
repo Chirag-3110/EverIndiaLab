@@ -28,6 +28,7 @@ const PERMISSION_OPTIONS = [
   "view-dashboard",
   "manage-category",
   "manage-phlebotomist",
+  "doctormanagement",
   "manage-staff",
   "manage-package",
   "manage-test",

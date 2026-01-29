@@ -15,6 +15,7 @@ import { manualApi } from "../api/manualApi";
 import { couponApi } from "../api/couponApi";
 import { labsApi } from "../api/labsApi";
 import { addressApi } from "../api/addressApi";
+import { drApi } from "../api/drApi";
 
 export const store = configureStore({
   reducer: {
@@ -34,6 +35,7 @@ export const store = configureStore({
     [couponApi.reducerPath]: couponApi.reducer,
     [labsApi.reducerPath]: labsApi.reducer,
     [addressApi.reducerPath]: addressApi.reducer,
+    [drApi.reducerPath]: drApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -53,5 +55,6 @@ export const store = configureStore({
       couponApi.middleware,
       labsApi.middleware,
       addressApi.middleware,
+      drApi.middleware,
     ]),
 });

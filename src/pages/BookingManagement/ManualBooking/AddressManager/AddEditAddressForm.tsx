@@ -5,7 +5,10 @@ import {
   useAddNewAddressMutation,
   useEditAddressMutation,
 } from "../../../../redux/api/addressApi";
-import { Autocomplete } from "@react-google-maps/api";
+import { Autocomplete, useJsApiLoader } from "@react-google-maps/api";
+
+type Libraries = ("places" | "drawing" | "geometry")[];
+const libs: Libraries = ["places"];
 
 export const AddEditAddressForm = ({
   userId,
@@ -24,16 +27,21 @@ export const AddEditAddressForm = ({
     lng: initialData?.longitude || 0,
   });
 
-  const [locationText, setLocationText] = useState(
+  const [description, setDescription] = useState(
     initialData?.description || ""
   );
 
-  /* ---------- Prefill on Edit ---------- */
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: libs,
+  });
+
+  /* ---------- Prefill form on edit ---------- */
   useEffect(() => {
     if (initialData) {
       form.setFieldsValue({
         houseNo: initialData.houseNo,
-        streetName: initialData.streetName,
+        apartmentName: initialData.streetName,
         landmark: initialData.landmark,
         postalCode: initialData.postalCode,
       });
@@ -43,7 +51,7 @@ export const AddEditAddressForm = ({
         lng: initialData.longitude,
       });
 
-      setLocationText(initialData.description);
+      setDescription(initialData.description);
     }
   }, [initialData]);
 
@@ -57,13 +65,13 @@ export const AddEditAddressForm = ({
       lng: place.geometry.location.lng(),
     });
 
-    setLocationText(place.formatted_address);
+    setDescription(place.formatted_address);
   };
 
   /* ---------- Submit ---------- */
   const handleSubmit = async (values) => {
-    if (!locationText || !location.lat || !location.lng) {
-      toast.error("Please select address from Google suggestions");
+    if (!description) {
+      toast.error("Please select a location from Google");
       return;
     }
 
@@ -71,9 +79,9 @@ export const AddEditAddressForm = ({
       userId,
       addressType: "normal",
       houseNo: values.houseNo,
-      streetName: values.streetName,
+      streetName: values.apartmentName,
       landmark: values.landmark,
-      description: locationText,
+      description,
       latitude: location.lat,
       longitude: location.lng,
       postalCode: values.postalCode || "",
@@ -90,28 +98,30 @@ export const AddEditAddressForm = ({
         : "Address added successfully"
     );
 
-    // onSaved?.(res.response);
+    // onSaved(res.response);
     onCancel();
   };
 
   return (
     <Form layout="vertical" form={form} onFinish={handleSubmit}>
       {/* -------- Google Location -------- */}
-      <Form.Item label="Search Location" required>
-        <Autocomplete
-          onLoad={(ref) => (autocompleteRef.current = ref)}
-          onPlaceChanged={onPlaceChanged}
-        >
-          <Input
-            placeholder="Search location on Google"
-            value={locationText}
-            onChange={(e) => {
-              setLocationText(e.target.value);
-              setLocation({ lat: 0, lng: 0 }); // invalidate until selected
-            }}
-          />
-        </Autocomplete>
-      </Form.Item>
+      {isLoaded && (
+        <Form.Item label="Search Location" required>
+          <Autocomplete
+            onLoad={(ref) => (autocompleteRef.current = ref)}
+            onPlaceChanged={onPlaceChanged}
+          >
+            <Input
+              placeholder="Search location on Google Maps"
+              value={description}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                setLocation({ lat: 0, lng: 0 }); // invalidate until selected
+              }}
+            />
+          </Autocomplete>
+        </Form.Item>
+      )}
 
       {/* -------- Address Fields -------- */}
       <Form.Item name="houseNo" label="House No" rules={[{ required: true }]}>
@@ -119,7 +129,7 @@ export const AddEditAddressForm = ({
       </Form.Item>
 
       <Form.Item
-        name="streetName"
+        name="apartmentName"
         label="Street / Apartment"
         rules={[{ required: true }]}
       >

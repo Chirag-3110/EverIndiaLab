@@ -88,7 +88,7 @@ export const AddressManager = ({ userId, selectedAddressId, onSelect }) => {
           }}
           onSaved={(addr) => {
             setSelectedId(addr._id);
-            onSelect(addr); // auto select newly added/edited
+            onSelect(addr);
           }}
         />
       )}

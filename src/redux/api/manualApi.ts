@@ -34,6 +34,15 @@ export const manualApi = createApi({
       invalidatesTags: ["manual"],
     }),
 
+    editUserFamilyMemberRelation: builder.mutation({
+      query: (body) => ({
+        url: "relation/edit-relation",
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["manual"],
+    }),
+
     addGetManualUserPreBookingDetails: builder.mutation({
       query: (body) => ({
         url: "booking/fetch-manual-booking-payment",
@@ -75,4 +84,5 @@ export const {
   useAddGetManualUserPreBookingDetailsMutation,
   useAddGetManualUserFinalBookingDetailsMutation,
   useGetManualUserFamilyMembersQuery,
+  useEditUserFamilyMemberRelationMutation,
 } = manualApi;

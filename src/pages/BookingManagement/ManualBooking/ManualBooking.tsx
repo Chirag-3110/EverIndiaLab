@@ -5,6 +5,7 @@ import {
   useAddManualUserMutation,
   useAddManualUserFamilyMemberMutation,
   useGetManualUserFamilyMembersQuery,
+  useEditUserFamilyMemberRelationMutation,
 } from "../../../redux/api/manualApi";
 import { formatDate } from "../../../utils/utils";
 import { Modal, Form, Input, Select, message, Table } from "antd";
@@ -16,6 +17,7 @@ const ManualBooking = () => {
   const navigate = useNavigate();
   const [isCreateUserModalOpen, setIsCreateUserModalOpen] = useState(false);
   const [isFamilyModalOpen, setIsFamilyModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<any | null>(null);
   const [form] = Form.useForm();
   const [familyForm] = Form.useForm();
 
@@ -28,6 +30,8 @@ const ManualBooking = () => {
 
   const [addFamilyMember, { isLoading: isAddingFamily }] =
     useAddManualUserFamilyMemberMutation();
+  const [editUserFamilyMemberRelation, { isLoading: isEditingFamily }] =
+    useEditUserFamilyMemberRelationMutation();
 
   const [addManualUser, { isLoading: isCreatingUser }] =
     useAddManualUserMutation();
@@ -50,8 +54,6 @@ const ManualBooking = () => {
   );
   const familyMembers = familyMemberList?.response?.relations || [];
 
-  console.log(familyMemberList);
-
   const handleSearch = () => {
     if (!searchInput.trim()) return;
     setSearchValue(searchInput);
@@ -70,7 +72,7 @@ const ManualBooking = () => {
 
       toast.success("User created successfully");
 
-      const createdUser = res?.response?.data; // adjust if API differs
+      const createdUser = res?.response?.data;
       setNewlyCreatedUser(createdUser);
 
       setIsCreateUserModalOpen(false);
@@ -99,57 +101,86 @@ const ManualBooking = () => {
     }
   };
 
-  const handleAddFamilyMember = async (values: any) => {
+  const handleAddOrEditFamilyMember = async (values: any) => {
     try {
-      const payload = {
-        ...values,
-        userId: user?._id,
-      };
+      if (editingMember) {
+        // 🟡 EDIT
+        await editUserFamilyMemberRelation({
+          id: editingMember._id,
+          ...values,
+        }).unwrap();
 
-      console.log(payload);
+        toast.success("Family member updated successfully");
+      } else {
+        // 🟢 ADD
+        const payload = {
+          ...values,
+          userId: user?._id,
+        };
 
-      await addFamilyMember(payload).unwrap();
-
-      toast.success("Family member added successfully");
+        await addFamilyMember(payload).unwrap();
+        toast.success("Family member added successfully");
+      }
 
       familyForm.resetFields();
+      setEditingMember(null);
       setIsFamilyModalOpen(false);
 
-      // 🔄 Refresh user to get updated family list
+      // refresh list
       setSearchTrigger(false);
       setTimeout(() => setSearchTrigger(true), 0);
     } catch (error: any) {
-      toast.error(error?.data?.message || "Failed to add family member");
+      toast.error(error?.data?.message || "Operation failed");
     }
+  };
+  const handleEditMember = (record: any) => {
+    setEditingMember(record);
+    setIsFamilyModalOpen(true);
+
+    familyForm.setFieldsValue({
+      name: record.name,
+      age: record.age,
+      gender: record.gender,
+      relation: record.relation,
+      phoneNumber: record.phoneNumber,
+      email: record.email,
+    });
   };
 
   const familyColumns = [
     {
       title: "Name",
       dataIndex: "name",
-      key: "name",
     },
     {
       title: "Relation",
       dataIndex: "relation",
-      key: "relation",
       render: (text: string) => text?.toUpperCase(),
     },
     {
       title: "Age",
       dataIndex: "age",
-      key: "age",
     },
     {
       title: "Gender",
       dataIndex: "gender",
-      key: "gender",
       render: (text: string) => text?.toUpperCase(),
     },
     {
       title: "Mobile",
       dataIndex: "phoneNumber",
-      key: "phoneNumber",
+    },
+    {
+      title: "Actions",
+      key: "actions",
+      render: (_: any, record: any) => (
+        <button
+          className="text-indigo-600 hover:underline"
+          onClick={() => handleEditMember(record)}
+        >
+          Edit
+        </button>
+      ),
     },
   ];
 
@@ -257,7 +288,11 @@ const ManualBooking = () => {
 
                   <button
                     className="bg-indigo-600 text-white px-3 py-1 rounded"
-                    onClick={() => setIsFamilyModalOpen(true)}
+                    onClick={() => {
+                      setEditingMember(null);
+                      familyForm.resetFields();
+                      setIsFamilyModalOpen(true);
+                    }}
                   >
                     Add Member
                   </button>
@@ -363,20 +398,21 @@ const ManualBooking = () => {
 
       {/* ADD FAMILY MEMEBER */}
       <Modal
-        title="Add Family Member"
+        title={editingMember ? "Edit Family Member" : "Add Family Member"}
         open={isFamilyModalOpen}
         onCancel={() => {
           setIsFamilyModalOpen(false);
+          setEditingMember(null);
           familyForm.resetFields();
         }}
         onOk={() => familyForm.submit()}
-        confirmLoading={isAddingFamily}
-        okText="Add Member"
+        confirmLoading={isAddingFamily || isEditingFamily}
+        okText={editingMember ? "Update Member" : "Add Member"}
       >
         <Form
           form={familyForm}
           layout="vertical"
-          onFinish={handleAddFamilyMember}
+          onFinish={handleAddOrEditFamilyMember}
         >
           <Form.Item
             name="name"

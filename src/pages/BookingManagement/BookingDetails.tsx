@@ -329,7 +329,7 @@ const BookingDetails = () => {
     Array.isArray(booking.response.data.items[0].reportFiles) &&
     booking.response.data.items[0].reportFiles.length > 0;
 
-  console.log(allReportsUploaded);
+  // console.log(allReportsUploaded);
 
   const handleUpdateReportFile = async (index: number) => {
     const fileUrl = bookingItems?.[0]?.reportFiles?.[index];

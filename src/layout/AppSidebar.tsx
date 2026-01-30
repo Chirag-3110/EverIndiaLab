@@ -41,12 +41,12 @@ const navItems: any = [
     icon: <UsersRound />,
     permission: "manage-phlebotomist",
   },
-  {
-    icon: <UsersRound />,
-    name: "DR. Management",
-    path: "/dr-management",
-    permission: "doctormanagement",
-  },
+  // {
+  //   icon: <UsersRound />,
+  //   name: "DR. Management",
+  //   path: "/dr-management",
+  //   permission: "doctormanagement",
+  // },
   {
     name: "Staff",
     path: "/employee-staff",

@@ -173,14 +173,15 @@ const ManualBooking = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_: any, record: any) => (
-        <button
-          className="text-indigo-600 hover:underline"
-          onClick={() => handleEditMember(record)}
-        >
-          Edit
-        </button>
-      ),
+      render: (_: any, record: any) =>
+        record?.relation !== "self" ? (
+          <button
+            className="text-indigo-600 hover:underline"
+            onClick={() => handleEditMember(record)}
+          >
+            Edit
+          </button>
+        ) : null,
     },
   ];
 

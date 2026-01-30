@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { useAuth } from "../../context/AuthContext";
 import {
+  useCancelManualBookingMutation,
   useGetBookingQuery,
   useMarkAsCompleteBookingMutation,
 } from "../../redux/api/bookingApi";
@@ -58,13 +59,14 @@ const BookingList = () => {
   const [markAsCompleteBooking, { isLoading: isSubmiting }] =
     useMarkAsCompleteBookingMutation();
 
+  const [cancelManualBooking] = useCancelManualBookingMutation();
+
   const { data, isLoading, isError, error } = useGetBookingQuery({
     searchText,
     page,
     pageSize,
     id: user?._id,
   });
-  console.log(error);
 
   const labBookings = data?.response?.data ?? [];
 
@@ -180,6 +182,14 @@ const BookingList = () => {
     dateRange,
     dateBookingRange,
   ]);
+
+  const handleCancelManualBooking = async (item) => {
+    const body = {
+      cancellationReason: "Booking is cancelled by the Admin.",
+    };
+    await cancelManualBooking({ body, id: item._id }).unwrap();
+    toast.success("Booking cancelled succesfully!");
+  };
 
   // ✅ Table Columns
   const columns = [
@@ -314,6 +324,20 @@ const BookingList = () => {
             <Button onClick={() => navigate(`/booking/details/${record._id}`)}>
               <EyeIcon size={18} />
             </Button>
+            {record?.status !== "completed" &&
+              record?.bookingDoneFrom === "admin" && (
+                <Button
+                  onClick={() => handleCancelManualBooking(record)}
+                  style={{
+                    color: "#ffff",
+                    backgroundColor: "#FF0800",
+                    borderColor: "#FF0800",
+                    fontWeight: "600",
+                  }}
+                >
+                  Cancel
+                </Button>
+              )}
             {record?.status !== "completed" &&
             record?.status !== "cancelled" &&
             record?.paymentType === "cash" &&

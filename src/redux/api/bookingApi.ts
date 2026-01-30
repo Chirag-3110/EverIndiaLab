@@ -107,6 +107,15 @@ export const bookingApi = createApi({
       }),
       invalidatesTags: ["Booking"],
     }),
+    // Get Cancel Booking done by ADMIN Api
+    cancelManualBooking: builder.mutation({
+      query: ({ body, id }) => ({
+        url: `booking/cancel-booking/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Booking"],
+    }),
   }),
 });
 
@@ -121,4 +130,5 @@ export const {
   useUploadReportToBookingMutation,
   useMarkedAsPaidBookingMutation,
   useGetRemoveReportMutation,
+  useCancelManualBookingMutation,
 } = bookingApi;

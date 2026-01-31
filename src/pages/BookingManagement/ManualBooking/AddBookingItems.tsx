@@ -27,6 +27,7 @@ import { useGetmasterPanelApiQuery } from "../../../redux/api/masterPanelApi";
 import { AddressManager } from "./AddressManager/AddressManager";
 import dayjs from "dayjs";
 import { useGetdrQuery } from "../../../redux/api/drApi";
+import { useAuth } from "../../../context/AuthContext";
 
 const { Option } = Select;
 
@@ -37,6 +38,8 @@ const disablePastDates = (current) => {
 };
 
 const AddBookingItems = () => {
+  const { user } = useAuth();
+  console.log(user);
   const navigate = useNavigate();
   const { state } = useLocation();
 
@@ -269,7 +272,7 @@ const AddBookingItems = () => {
 
       const formData = new FormData();
       formData.append("userId", USER_ID);
-      formData.append("labId", selectedLabId);
+      formData.append("labId", user?._id);
       formData.append("doctorId", selectedDRId);
       formData.append(
         "paymentType",
@@ -604,7 +607,7 @@ const AddBookingItems = () => {
           </table>{" "}
         </div>
         {/* LAB Selection */}
-        <div className="w-full mb-2">
+        {/* <div className="w-full mb-2">
           <Select
             className="w-full"
             placeholder="Select Lab"
@@ -621,7 +624,7 @@ const AddBookingItems = () => {
               </Option>
             ))}
           </Select>
-        </div>
+        </div> */}
         {/* DR Selection */}
         <div className="w-full mb-2">
           <Select
@@ -687,10 +690,19 @@ const AddBookingItems = () => {
               <span>₹{preBookingAmount?.totalOriginalAmount}</span>
             </div>
 
-            <div className="flex justify-between mb-2 text-green-600">
-              <span>Coupon Discount</span>
-              <span>- ₹{preBookingAmount?.couponAppliedAmount || 0}</span>
-            </div>
+            {preBookingAmount?.couponAppliedAmount >0 && (
+              <div className="flex justify-between mb-2 text-green-600">
+                <span>Coupon Discount</span>
+                <span>- ₹{preBookingAmount?.couponAppliedAmount}</span>
+              </div>
+            )}
+
+            {manualCoupon && (
+              <div className="flex justify-between mb-2 text-green-600">
+                <span>Manual Discount</span>
+                <span>- ₹{manualCoupon || 0}</span>
+              </div>
+            )}
 
             <div className="flex justify-between mb-2">
               <span>Platform Fee</span>
@@ -843,8 +855,6 @@ const AddBookingItems = () => {
         onCancel={() => setCouponModalOpen(false)}
         footer={null}
       >
-        
-
         <Input.Search
           placeholder="Search coupon code"
           value={couponSearch}

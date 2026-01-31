@@ -626,7 +626,7 @@ const AddBookingItems = () => {
         <div className="w-full mb-2">
           <Select
             className="w-full"
-            placeholder="Select Doctor"
+            placeholder="Referred By Doctor"
             optionFilterProp="children"
             showSearch
             disabled={drLoading}

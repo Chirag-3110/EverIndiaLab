@@ -6,7 +6,7 @@ export const addressApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_BASE_URL,
     prepareHeaders: (headers, { getState }) => {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("l_t_K");
       if (token) headers.set("Authorization", `Bearer ${token}`);
       return headers;
     },

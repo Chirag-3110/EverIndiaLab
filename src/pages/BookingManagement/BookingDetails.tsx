@@ -485,6 +485,13 @@ const BookingDetails = () => {
                       {booking.response.data.amount.couponAppliedAmount}
                     </ol>
                   )}
+                {booking?.response?.data?.amount?.otherDiscount != null &&
+                  booking.response.data.amount.otherDiscount !== 0 && (
+                    <ol className="flex justify-between">
+                      <label>Manual Discount:</label>
+                      {booking.response.data.amount.otherDiscount}
+                    </ol>
+                  )}
                 {booking?.response?.data?.amount?.platformFee != null &&
                   booking?.response?.data?.amount.platformFee !== 0 && (
                     <ol className="flex justify-between">

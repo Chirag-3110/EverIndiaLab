@@ -224,10 +224,10 @@ const AddBookingItems = () => {
         toast.info("Please select the lab first.");
         return;
       }
-      if (!selectedDRId) {
-        toast.info("Please select the Doctor first.");
-        return;
-      }
+      // if (!selectedDRId) {
+      //   toast.info("Please select the Doctor first.");
+      //   return;
+      // }
       if (!bookingType) {
         toast.info("Please select the booking type.");
         return;
@@ -294,7 +294,10 @@ const AddBookingItems = () => {
           total: preBookingAmount?.totalOriginalAmount,
           discount: preBookingAmount?.couponAppliedAmount || 0,
           otherDiscount: manualCoupon || 0,
-          finalAmount: preBookingAmount?.payableAmount,
+          finalAmount: Math.max(
+            0,
+            (preBookingAmount?.payableAmount || 0) - (Number(manualCoupon) || 0)
+          ),
           platformFee: preBookingAmount?.platformFee || 0,
           collectiontype:
             bookingType === "normal" ? "Home Collection" : "Lab Visit",
@@ -638,13 +641,44 @@ const AddBookingItems = () => {
             ))}
           </Select>
         </div>
-        <div className="flex flex-col gap-2 justify-start mb-3">
-          <button
-            className="bg-green-600 hover:bg-green-700 px-2 py-1.5 rounded-md text-white text-xs"
-            onClick={() => setCouponModalOpen(true)}
-          >
-            Apply Coupon
-          </button>
+        <div>
+          <p className="text-red-600 italic mb-4">
+            <span className="text-red-600 italic font-semibold">Note:</span>{" "}
+            Either enter manual discount amount, select coupon code from the
+            list, <strong>or use both together</strong>.
+          </p>
+          <Input
+            className="uppercase"
+            placeholder="Enter manual discount amount"
+            value={manualCoupon}
+            onChange={(e) => {
+              const value = e.target.value.replace(/[^0-9]/g, "");
+              setManualCoupon(value);
+            }}
+            onKeyPress={(e) => {
+              if (!/[0-9]/.test(e.key)) {
+                e.preventDefault();
+              }
+            }}
+            onPaste={(e) => {
+              e.preventDefault();
+              const pastedData = e.clipboardData
+                .getData("text")
+                .replace(/[^0-9]/g, "");
+              setManualCoupon(pastedData);
+            }}
+            maxLength={10}
+          />
+
+          <p className="text-center p-1 font-bold">OR</p>
+          <div className="flex flex-col gap-2 justify-start mb-3">
+            <button
+              className="bg-green-600 hover:bg-green-700 px-2 py-1.5 rounded-md text-white text-xs"
+              onClick={() => setCouponModalOpen(true)}
+            >
+              Apply Coupon
+            </button>
+          </div>
         </div>
         <div className="border rounded-lg p-4 bg-gray-50">
           <div className="bg-white rounded-md border p-3">
@@ -665,7 +699,13 @@ const AddBookingItems = () => {
 
             <div className="border-t pt-2 flex justify-between font-semibold">
               <span>Payable Amount</span>
-              <span>₹{preBookingAmount?.payableAmount}</span>
+              <span>
+                ₹
+                {manualCoupon
+                  ? (preBookingAmount?.payableAmount || 0) -
+                    (Number(manualCoupon) || 0)
+                  : preBookingAmount?.payableAmount || 0}
+              </span>
             </div>
           </div>
 
@@ -803,35 +843,7 @@ const AddBookingItems = () => {
         onCancel={() => setCouponModalOpen(false)}
         footer={null}
       >
-        <p className="text-red-600 italic mb-4">
-          <span className="text-red-600 italic font-semibold">Note:</span>{" "}
-          Either enter manual discount amount, select coupon code from the list,{" "}
-          <strong>or use both together</strong>.
-        </p>
-        <Input
-          className="uppercase"
-          placeholder="Enter manual discount amount"
-          value={manualCoupon}
-          onChange={(e) => {
-            const value = e.target.value.replace(/[^0-9]/g, "");
-            setManualCoupon(value);
-          }}
-          onKeyPress={(e) => {
-            if (!/[0-9]/.test(e.key)) {
-              e.preventDefault();
-            }
-          }}
-          onPaste={(e) => {
-            e.preventDefault();
-            const pastedData = e.clipboardData
-              .getData("text")
-              .replace(/[^0-9]/g, "");
-            setManualCoupon(pastedData);
-          }}
-          maxLength={10}
-        />
-
-        <p className="text-center p-1 font-bold">OR</p>
+        
 
         <Input.Search
           placeholder="Search coupon code"

@@ -47,7 +47,6 @@ const AddBookingItems = () => {
   const familyMemberId = state?.familyMemberId;
   const familyMember = state?.familyMember;
 
-
   /* ---------------- STATES ---------------- */
   const [activeTab, setActiveTab] = useState("test");
   const [searchText, setSearchText] = useState("");
@@ -651,10 +650,19 @@ const AddBookingItems = () => {
             placeholder="Referred By Doctor"
             optionFilterProp="children"
             showSearch
+            allowClear
             disabled={drLoading}
             loading={drLoading}
             value={selectedDRId}
-            onChange={(value) => setSelectedDRId(value)}
+            onChange={(value) => {
+              setSelectedDRId(value);
+              if (!value) {
+                // Reset related fields here
+                // setOtherField1("");
+                // setOtherField2(null);
+                setSelectedDRId(null);
+              }
+            }}
           >
             {drList?.response?.data?.map((dr) => (
               <Option key={dr._id} value={dr._id}>

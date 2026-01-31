@@ -325,7 +325,7 @@ const BookingList = () => {
               <EyeIcon size={18} />
             </Button>
             {record?.status !== "completed" &&
-              record?.bookingDoneFrom === "admin" && (
+              record?.status !== "cancelled" && (
                 <Button
                   onClick={() => handleCancelManualBooking(record)}
                   style={{

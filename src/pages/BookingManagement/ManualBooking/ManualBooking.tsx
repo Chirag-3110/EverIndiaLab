@@ -328,6 +328,7 @@ const ManualBooking = () => {
                       bookingFor === "family"
                         ? selectedFamilyMember?._id
                         : null,
+                    familyMember: selectedFamilyMember,
                   },
                 })
               }

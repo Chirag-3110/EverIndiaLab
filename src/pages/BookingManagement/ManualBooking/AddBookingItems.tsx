@@ -45,6 +45,8 @@ const AddBookingItems = () => {
 
   const USER_ID = state?.userId;
   const familyMemberId = state?.familyMemberId;
+  const familyMember = state?.familyMember;
+
 
   /* ---------------- STATES ---------------- */
   const [activeTab, setActiveTab] = useState("test");
@@ -574,6 +576,19 @@ const AddBookingItems = () => {
             <p>Date: {new Date().toLocaleDateString()}</p>
           </div>{" "}
         </div>
+        {/* Selected Member Details */}
+        <h3 className="text-md font-semibold">Selected Member</h3>{" "}
+        <div className="flex gap-8  mb-4">
+          <p>
+            <strong>Name:</strong> {familyMember?.name}
+          </p>
+          <p>
+            <strong>Age:</strong> {familyMember?.age}
+          </p>
+          <p>
+            <strong>Name:</strong> {familyMember?.relation}
+          </p>
+        </div>
         {/* Items Table */}{" "}
         <div className="bg-white rounded-md border mb-4">
           {" "}
@@ -593,14 +608,18 @@ const AddBookingItems = () => {
                 <tr key={t._id} className="border-t">
                   {" "}
                   <td className="p-2">{t.title}</td>{" "}
-                  <td className="p-2 text-right">₹{t.price}</td>{" "}
+                  <td className="p-2 text-right">
+                    ₹{`${t.discountPrice}` || `${t.price}`}
+                  </td>{" "}
                 </tr>
               ))}{" "}
               {selectedPackages.map((p) => (
                 <tr key={p._id} className="border-t">
                   {" "}
                   <td className="p-2">{p.title}</td>{" "}
-                  <td className="p-2 text-right">₹{p.price}</td>{" "}
+                  <td className="p-2 text-right">
+                    ₹{`${p.discountPrice}` || `${p.price}`}
+                  </td>{" "}
                 </tr>
               ))}{" "}
             </tbody>{" "}
@@ -690,7 +709,7 @@ const AddBookingItems = () => {
               <span>₹{preBookingAmount?.totalOriginalAmount}</span>
             </div>
 
-            {preBookingAmount?.couponAppliedAmount >0 && (
+            {preBookingAmount?.couponAppliedAmount > 0 && (
               <div className="flex justify-between mb-2 text-green-600">
                 <span>Coupon Discount</span>
                 <span>- ₹{preBookingAmount?.couponAppliedAmount}</span>

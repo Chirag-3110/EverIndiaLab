@@ -14,6 +14,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useAssignStaffBookingMutation,
+  useCancelManualBookingMutation,
   useGetBookingDetailsQuery,
   useGetBookingQuery,
   useGetRemoveReportMutation,
@@ -68,6 +69,8 @@ const BookingDetails = () => {
 
   const [getRemoveReport, { isLoading: isRemoving, error }] =
     useGetRemoveReportMutation();
+
+  const [cancelManualBooking] = useCancelManualBookingMutation();
 
   const { data: StaffList, isFetching } = useGetStaffsQuery({
     searchText,
@@ -350,6 +353,14 @@ const BookingDetails = () => {
     const res = await getRemoveReport({ body: formData }).unwrap();
   };
 
+  const handleCancelManualBooking = async (item) => {
+    const body = {
+      cancellationReason: "Booking is cancelled by the Admin.",
+    };
+    await cancelManualBooking({ body, id: item._id }).unwrap();
+    toast.success("Booking cancelled succesfully!");
+  };
+
   return (
     <div>
       <PageBreadcrumb pageTitle={"Booking Details"} />
@@ -397,6 +408,59 @@ const BookingDetails = () => {
           </span>
         </div>
       </div>
+
+      <div className="m-2 flex gap-4 justify-end">
+        {booking?.response?.data?.status !== "completed" &&
+        booking?.response?.data?.status !== "cancelled" &&
+        booking?.response?.data?.paymentType === "cash" &&
+        booking?.response?.data?.paymentStatus === "paid" &&
+        allReportsUploaded ? (
+          <Button
+            onClick={() => handleCashPayment(booking?.response?.data)}
+            style={{
+              color: "#27ae60",
+              backgroundColor: "#e6f4ea",
+              borderColor: "#27ae60",
+              fontWeight: "600",
+            }}
+            loading={isSubmiting}
+          >
+            Mark As Completed
+          </Button>
+        ) : null}
+        {booking?.response?.data?.paymentType === "online" &&
+        booking?.response?.data?.status !== "completed" &&
+        booking?.response?.data?.status !== "cancelled" &&
+        allReportsUploaded ? (
+          <Button
+            onClick={() => handleOnlinePayment(booking?.response?.data)}
+            style={{
+              color: "#27ae60",
+              backgroundColor: "#e6f4ea",
+              borderColor: "#27ae60",
+              fontWeight: "600",
+            }}
+            loading={isSubmiting}
+          >
+            Mark As Completed
+          </Button>
+        ) : null}
+        {booking?.response?.data?.status !== "completed" &&
+          booking?.response?.data?.status !== "cancelled" && (
+            <Button
+              onClick={() => handleCancelManualBooking(booking?.response?.data)}
+              style={{
+                color: "#ffff",
+                backgroundColor: "#FF0800",
+                borderColor: "#FF0800",
+                fontWeight: "600",
+              }}
+            >
+              Cancel Booking
+            </Button>
+          )}
+      </div>
+
       <Tabs defaultActiveKey="1">
         <Tabs.TabPane tab="Booking Info" key="1">
           <Descriptions bordered column={1} size="small">
@@ -648,41 +712,6 @@ const BookingDetails = () => {
           }
           */}
           <div className="mt-8 flex justify-end">
-            {booking?.response?.data?.status !== "completed" &&
-            booking?.response?.data?.status !== "cancelled" &&
-            booking?.response?.data?.paymentType === "cash" &&
-            booking?.response?.data?.paymentStatus === "paid" &&
-            allReportsUploaded ? (
-              <Button
-                onClick={() => handleCashPayment(booking?.response?.data)}
-                style={{
-                  color: "#27ae60",
-                  backgroundColor: "#e6f4ea",
-                  borderColor: "#27ae60",
-                  fontWeight: "600",
-                }}
-                loading={isSubmiting}
-              >
-                Mark As Completed
-              </Button>
-            ) : null}
-            {booking?.response?.data?.paymentType === "online" &&
-            booking?.response?.data?.status !== "completed" &&
-            booking?.response?.data?.status !== "cancelled" &&
-            allReportsUploaded ? (
-              <Button
-                onClick={() => handleOnlinePayment(booking?.response?.data)}
-                style={{
-                  color: "#27ae60",
-                  backgroundColor: "#e6f4ea",
-                  borderColor: "#27ae60",
-                  fontWeight: "600",
-                }}
-                loading={isSubmiting}
-              >
-                Mark As Completed
-              </Button>
-            ) : null}
             {booking?.response?.data?.paymentStatus === "unpaid" && (
               <Button
                 onClick={() => handleMarkAsPaid()}

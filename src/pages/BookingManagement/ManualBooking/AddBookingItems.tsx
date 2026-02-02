@@ -336,10 +336,9 @@ const AddBookingItems = () => {
       }
 
       const res = await finalBooking(formData).unwrap();
-      console.log(res);
       toast.success("Booking completed successfully");
-      // navigate(`/booking-list/booking-details/${res._id}`);
-      navigate("/booking-list");
+      navigate(`/booking-list/booking-details/${res.response?.id}`);
+      // navigate("/booking-list");
     } catch (err: any) {
       toast.error(err?.data?.message || "Final booking failed");
     }

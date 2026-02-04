@@ -10,6 +10,7 @@ import {
   Form,
   Modal,
   Select,
+  Popconfirm,
 } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -56,6 +57,7 @@ const BookingDetails = () => {
 
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [searchText, setSearchText] = useState("");
+  const [cancellingId, setCancellingId] = useState(null);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
@@ -357,8 +359,23 @@ const BookingDetails = () => {
     const body = {
       cancellationReason: "Booking is cancelled by the Admin.",
     };
-    await cancelManualBooking({ body, id: item._id }).unwrap();
-    toast.success("Booking cancelled succesfully!");
+
+    try {
+      setCancellingId(item._id);
+
+      await cancelManualBooking({
+        body,
+        id: item._id,
+      }).unwrap();
+
+      toast.success("Booking cancelled successfully!");
+    } catch (error) {
+      toast.error(
+        error?.data?.message || "Failed to cancel booking. Please try again."
+      );
+    } finally {
+      setCancellingId(null);
+    }
   };
 
   return (
@@ -447,17 +464,30 @@ const BookingDetails = () => {
         ) : null}
         {booking?.response?.data?.status !== "completed" &&
           booking?.response?.data?.status !== "cancelled" && (
-            <Button
-              onClick={() => handleCancelManualBooking(booking?.response?.data)}
-              style={{
-                color: "#ffff",
-                backgroundColor: "#FF0800",
-                borderColor: "#FF0800",
-                fontWeight: "600",
-              }}
+            <Popconfirm
+              title="Cancel booking?"
+              description="Are you sure you want to cancel this booking?"
+              okText="Yes, Cancel"
+              cancelText="No"
+              okButtonProps={{ danger: true }}
+              onConfirm={() =>
+                handleCancelManualBooking(booking?.response?.data)
+              }
+              disabled={cancellingId === booking?.response?.data?._id}
             >
-              Cancel Booking
-            </Button>
+              <Button
+                loading={cancellingId === booking?.response?.data?._id}
+                disabled={cancellingId === booking?.response?.data?._id}
+                style={{
+                  color: "#ffff",
+                  backgroundColor: "#FF0800",
+                  borderColor: "#FF0800",
+                  fontWeight: "600",
+                }}
+              >
+                Cancel Booking
+              </Button>
+            </Popconfirm>
           )}
       </div>
 

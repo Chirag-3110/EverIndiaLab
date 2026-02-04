@@ -8,6 +8,7 @@ import {
   message,
   Select,
   DatePicker,
+  Popconfirm,
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -51,6 +52,8 @@ const BookingList = () => {
   const [pageSize, setPageSize] = useState(15);
 
   // Popup controls
+  const [cancellingId, setCancellingId] = useState(null);
+
   const [popupVisible, setPopupVisible] = useState(false);
   const [uploadVisible, setUploadVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
@@ -187,8 +190,23 @@ const BookingList = () => {
     const body = {
       cancellationReason: "Booking is cancelled by the Admin.",
     };
-    await cancelManualBooking({ body, id: item._id }).unwrap();
-    toast.success("Booking cancelled succesfully!");
+
+    try {
+      setCancellingId(item._id);
+
+      await cancelManualBooking({
+        body,
+        id: item._id,
+      }).unwrap();
+
+      toast.success("Booking cancelled successfully!");
+    } catch (error) {
+      toast.error(
+        error?.data?.message || "Failed to cancel booking. Please try again."
+      );
+    } finally {
+      setCancellingId(null);
+    }
   };
 
   // ✅ Table Columns
@@ -326,17 +344,28 @@ const BookingList = () => {
             </Button>
             {record?.status !== "completed" &&
               record?.status !== "cancelled" && (
-                <Button
-                  onClick={() => handleCancelManualBooking(record)}
-                  style={{
-                    color: "#ffff",
-                    backgroundColor: "#FF0800",
-                    borderColor: "#FF0800",
-                    fontWeight: "600",
-                  }}
+                <Popconfirm
+                  title="Cancel booking?"
+                  description="Are you sure you want to cancel this booking?"
+                  okText="Yes, Cancel"
+                  cancelText="No"
+                  okButtonProps={{ danger: true }}
+                  onConfirm={() => handleCancelManualBooking(record)}
+                  disabled={cancellingId === record._id}
                 >
-                  Cancel
-                </Button>
+                  <Button
+                    loading={cancellingId === record._id}
+                    disabled={cancellingId === record._id}
+                    style={{
+                      color: "#fff",
+                      backgroundColor: "#FF0800",
+                      borderColor: "#FF0800",
+                      fontWeight: "600",
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </Popconfirm>
               )}
             {record?.status !== "completed" &&
             record?.status !== "cancelled" &&

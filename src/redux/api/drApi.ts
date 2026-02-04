@@ -34,6 +34,14 @@ export const drApi = createApi({
       }),
       providesTags: ["dr"],
     }),
+    // ✅ Get dr details
+    getdrDetails: builder.query({
+      query: (id) => ({
+        url: `doctor/get-doctor-and-booking/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["dr"],
+    }),
 
     // ✅ Update dr Page by ID
     updatedr: builder.mutation({
@@ -61,4 +69,5 @@ export const {
   useGetdrQuery,
   useUpdatedrMutation,
   useDeletedrMutation,
+  useGetdrDetailsQuery,
 } = drApi;

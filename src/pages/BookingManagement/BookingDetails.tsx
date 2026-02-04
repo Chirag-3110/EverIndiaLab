@@ -29,6 +29,8 @@ import { toast } from "react-toastify";
 import { bookingStatusColors, formatDateTime } from "../../utils/utils";
 import { File, PenBoxIcon, UploadCloud } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useEditUserFamilyMemberRelationMutation } from "../../redux/api/manualApi";
+import EditFamilyMemberModal from "./EditFamilyMemberModal";
 
 const BookingDetails = () => {
   const navigate = useNavigate();
@@ -37,7 +39,8 @@ const BookingDetails = () => {
   const [selectedUploadItem, setSelectedUploadItem] = useState(null);
   const [file, setFile] = useState(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState(null);
-
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<any>(null);
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
 
@@ -46,7 +49,7 @@ const BookingDetails = () => {
   const [markAsCompleteBooking, { isLoading: isSubmiting }] =
     useMarkAsCompleteBookingMutation();
 
-  const { data, isLoading } = useGetBookingDetailsQuery(id);
+  const { data, isLoading, refetch } = useGetBookingDetailsQuery(id);
 
   const booking: any = data || [];
   const bookingItems = booking?.response?.data.items;
@@ -73,6 +76,8 @@ const BookingDetails = () => {
     useGetRemoveReportMutation();
 
   const [cancelManualBooking] = useCancelManualBookingMutation();
+  const [editUserFamilyMemberRelation, { isLoading: isEditingFamily }] =
+    useEditUserFamilyMemberRelationMutation();
 
   const { data: StaffList, isFetching } = useGetStaffsQuery({
     searchText,
@@ -378,6 +383,25 @@ const BookingDetails = () => {
     }
   };
 
+  const handleEditFamilyMember = async (values: any) => {
+    try {
+      const payload = {
+        id: editingMember._id,
+        ...values,
+        phoneNumber: values.phoneNumber ? `+91 ${values.phoneNumber}` : null,
+      };
+
+      await editUserFamilyMemberRelation(payload).unwrap();
+
+      toast.success("Family member updated successfully");
+      refetch();
+      setEditModalOpen(false);
+      setEditingMember(null);
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update member");
+    }
+  };
+
   return (
     <div>
       <PageBreadcrumb pageTitle={"Booking Details"} />
@@ -626,6 +650,21 @@ const BookingDetails = () => {
               <Descriptions.Item label="Email">
                 {booking?.response?.data.familyMemberId?.email}
               </Descriptions.Item>
+
+              {booking?.response?.data?.status !== "completed" &&
+                booking?.response?.data?.status !== "cancelled" && (
+                  <div className="mt-4 flex justify-end">
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        setEditingMember(booking?.familyMemberId);
+                        setEditModalOpen(true);
+                      }}
+                    >
+                      Edit Member
+                    </Button>
+                  </div>
+                )}
             </Descriptions>
           </Tabs.TabPane>
         )}
@@ -1017,6 +1056,18 @@ const BookingDetails = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Member details */}
+      <EditFamilyMemberModal
+        open={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setEditingMember(null);
+        }}
+        member={editingMember}
+        onSubmit={handleEditFamilyMember}
+        loading={isEditingFamily}
+      />
     </div>
   );
 };

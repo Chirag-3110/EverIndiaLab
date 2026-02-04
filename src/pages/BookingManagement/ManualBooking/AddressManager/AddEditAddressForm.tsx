@@ -35,10 +35,7 @@ export const AddEditAddressForm = ({
     initialData?.description || ""
   );
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-    libraries: libs,
-  });
+
 
   /* ---------- Helpers ---------- */
   const isPlaceInJaipur = (place) => {
@@ -152,7 +149,6 @@ export const AddEditAddressForm = ({
   return (
     <Form layout="vertical" form={form} onFinish={handleSubmit}>
       {/* -------- Google Location -------- */}
-      {isLoaded && (
         <Form.Item label="Search Location" required>
           <Autocomplete
             onLoad={(ref) => (autocompleteRef.current = ref)}
@@ -178,7 +174,6 @@ export const AddEditAddressForm = ({
             />
           </Autocomplete>
         </Form.Item>
-      )}
 
       {/* -------- Address Fields -------- */}
       <Form.Item name="houseNo" label="House No" rules={[{ required: true }]}>

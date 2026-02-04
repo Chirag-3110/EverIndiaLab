@@ -39,7 +39,6 @@ const disablePastDates = (current) => {
 
 const AddBookingItems = () => {
   const { user } = useAuth();
-  console.log(user);
   const navigate = useNavigate();
   const { state } = useLocation();
 

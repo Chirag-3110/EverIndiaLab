@@ -133,15 +133,31 @@ const AddBookingItems = () => {
   /* ---------------- TABLE COLUMNS ---------------- */
 
   const testColumns = [
-    { title: "Test Name", dataIndex: "title" },
-    { title: "Price", dataIndex: "price" },
-    { title: "Discount Price", dataIndex: "discountPrice" },
+    {
+      title: "Test Name",
+      dataIndex: "title",
+      render: (item: any) => item || "--",
+    },
+    { title: "Price", dataIndex: "price", render: (item: any) => item || "--" },
+    {
+      title: "Discount Price",
+      dataIndex: "discountPrice",
+      render: (item: any) => item || "--",
+    },
   ];
 
   const packageColumns = [
-    { title: "Package Name", dataIndex: "title" },
-    { title: "Price", dataIndex: "price" },
-    { title: "Discount Price", dataIndex: "discountPrice" },
+    {
+      title: "Package Name",
+      dataIndex: "title",
+      render: (item: any) => item || "--",
+    },
+    { title: "Price", dataIndex: "price", render: (item: any) => item || "--" },
+    {
+      title: "Discount Price",
+      dataIndex: "discountPrice",
+      render: (item: any) => item || "--",
+    },
   ];
 
   const couponColumns = [
@@ -223,10 +239,10 @@ const AddBookingItems = () => {
   /* ---- Step 3: Final Booking ---- */
   const handleFinalBooking = async () => {
     try {
-      if (!selectedLabId) {
-        toast.info("Please select the lab first.");
-        return;
-      }
+      // if (!selectedLabId) {
+      //   toast.info("Please select the lab first.");
+      //   return;
+      // }
       // if (!selectedDRId) {
       //   toast.info("Please select the Doctor first.");
       //   return;
@@ -606,7 +622,7 @@ const AddBookingItems = () => {
                   {" "}
                   <td className="p-2">{t.title}</td>{" "}
                   <td className="p-2 text-right">
-                    ₹{`${t.discountPrice}` || `${t.price}`}
+                    ₹ {t.discountPrice ?? t.price ?? "--"}
                   </td>{" "}
                 </tr>
               ))}{" "}
@@ -615,7 +631,7 @@ const AddBookingItems = () => {
                   {" "}
                   <td className="p-2">{p.title}</td>{" "}
                   <td className="p-2 text-right">
-                    ₹{`${p.discountPrice}` || `${p.price}`}
+                    ₹ {p.discountPrice ?? p.price ?? "--"}
                   </td>{" "}
                 </tr>
               ))}{" "}

@@ -75,7 +75,7 @@ export default function App() {
           <Route index path="/booking-list" element={<BookingList />} />
           <Route
             index
-            path="/booking/details/:id"
+            path="/booking-list/booking-details/:id"
             element={<BookingDetails />}
           />
           <Route index path="/profile-management" element={<UpdateProfile />} />

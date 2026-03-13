@@ -118,7 +118,6 @@ export default function AdminDashboard() {
                   <h2 className="text-lg font-semibold">
                     {" "}
                     Total Tests Conducted{" "}
-                    <span className="text-xs text-gray-600">(Today)</span>
                   </h2>
                   <span className="text-xl font-bold">
                     {stats?.totalConductedToday || 0}
